@@ -16,8 +16,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   release:
@@ -25,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: release
+
+    permissions:
+      contents: write # needed to create GitHub release and upload artifacts
 
     steps:
       - name: Checkout repository
