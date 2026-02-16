@@ -37,7 +37,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-          cache: maven
 
       - name: Build release artifacts
         run: ./mvnw -B -ntp -Prelease -DskipTests clean verify
