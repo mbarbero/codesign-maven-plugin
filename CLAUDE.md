@@ -9,11 +9,11 @@ Eclipse CSI SignPath Maven Plugin — a Maven plugin that signs build artifacts 
 ## Build & Test Commands
 
 ```shell
-mvn clean verify          # Build and run all tests
-mvn test                  # Run tests only
-mvn test -Dtest=SignMojoTest                    # Run a single test class
-mvn test -Dtest=SignMojoTest#testSignFiles       # Run a single test method
-mvn -Prelease -DskipTests clean verify          # Build with release profile
+./mvnw clean verify          # Build and run all tests
+./mvnw test                  # Run tests only
+./mvnw test -Dtest=SignMojoTest                    # Run a single test class
+./mvnw test -Dtest=SignMojoTest#testSignFiles       # Run a single test method
+./mvnw -Prelease -DskipTests clean verify          # Build with release profile
 ```
 
 Requires Java 21+ and Maven 3.9+ (enforced by maven-enforcer-plugin).

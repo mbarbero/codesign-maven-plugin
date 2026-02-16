@@ -40,7 +40,7 @@ jobs:
           cache: maven
 
       - name: Build release artifacts
-        run: mvn -B -ntp -Prelease -DskipTests clean verify
+        run: ./mvnw -B -ntp -Prelease -DskipTests clean verify
 
       - name: Run JReleaser
         env:
@@ -51,6 +51,6 @@ jobs:
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
         run: >
-          mvn -B -ntp -Prelease
+          ./mvnw -B -ntp -Prelease
           jreleaser:full-release
           ${{ inputs.dry-run && '-Djreleaser.dry.run=true' || '' }}
