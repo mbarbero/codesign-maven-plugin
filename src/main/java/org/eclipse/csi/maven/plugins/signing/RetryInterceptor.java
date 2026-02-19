@@ -36,12 +36,29 @@ public class RetryInterceptor implements Interceptor {
 	private final Duration retryInterval;
 	private final int maxRetries;
 
+	/**
+	 * Creates a new retry interceptor.
+	 *
+	 * @param retryTimeout  the maximum time window for all retry attempts
+	 * @param retryInterval the delay between consecutive retry attempts
+	 * @param maxRetries    the maximum number of retry attempts
+	 */
 	public RetryInterceptor(Duration retryTimeout, Duration retryInterval, int maxRetries) {
 		this.retryTimeout = retryTimeout;
 		this.retryInterval = retryInterval;
 		this.maxRetries = maxRetries;
 	}
 
+	/**
+	 * Intercepts the request and retries on transient failures.
+	 * <p>
+	 * Retries on HTTP {@code 429}, {@code 502}, {@code 503}, {@code 504} and
+	 * {@link IOException}, up to {@code maxRetries} times or until the deadline is exceeded.
+	 *
+	 * @param chain the OkHttp interceptor chain
+	 * @return the HTTP response
+	 * @throws IOException if the request ultimately fails after all retry attempts
+	 */
 	@Override
 	public Response intercept(Chain chain) throws IOException {
 		Request request = chain.request();

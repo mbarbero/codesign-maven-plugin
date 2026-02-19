@@ -33,18 +33,38 @@ public record SigningRequestStatus(
 	private static final String STATUS_DENIED = "Denied";
 	private static final String STATUS_CANCELED = "Canceled";
 
+	/**
+	 * Returns {@code true} if the signing request completed successfully.
+	 *
+	 * @return {@code true} when status is {@code "Completed"}
+	 */
 	public boolean isCompleted() {
 		return STATUS_COMPLETED.equals(status);
 	}
 
+	/**
+	 * Returns {@code true} if the signing request failed.
+	 *
+	 * @return {@code true} when status is {@code "Failed"}
+	 */
 	public boolean isFailed() {
 		return STATUS_FAILED.equals(status);
 	}
 
+	/**
+	 * Returns {@code true} if the signing request was denied.
+	 *
+	 * @return {@code true} when status is {@code "Denied"}
+	 */
 	public boolean isDenied() {
 		return STATUS_DENIED.equals(status);
 	}
 
+	/**
+	 * Returns {@code true} if the signing request was canceled.
+	 *
+	 * @return {@code true} when status is {@code "Canceled"}
+	 */
 	public boolean isCanceled() {
 		return STATUS_CANCELED.equals(status);
 	}

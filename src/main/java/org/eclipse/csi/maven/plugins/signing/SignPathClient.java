@@ -47,6 +47,15 @@ public class SignPathClient implements AutoCloseable {
 
 	/**
 	 * Configuration for the SignPath client.
+	 *
+	 * @param baseUrl         the SignPath API base URL
+	 * @param organizationId  the SignPath organization identifier
+	 * @param apiToken        the Bearer API token used for authentication
+	 * @param connectTimeout  the HTTP connection timeout
+	 * @param httpTimeout     the HTTP read/write timeout
+	 * @param retryTimeout    the maximum time window for retry attempts
+	 * @param retryInterval   the delay between retry attempts
+	 * @param maxRetries      the maximum number of retry attempts
 	 */
 	public record Config(
 			String baseUrl,
@@ -59,6 +68,11 @@ public class SignPathClient implements AutoCloseable {
 			int maxRetries) {
 	}
 
+	/**
+	 * Creates a new client from the given configuration.
+	 *
+	 * @param config the client configuration
+	 */
 	public SignPathClient(Config config) {
 		this.baseUrl = config.baseUrl();
 		this.organizationId = config.organizationId();
@@ -86,7 +100,15 @@ public class SignPathClient implements AutoCloseable {
 	/**
 	 * Submits an artifact for signing.
 	 *
+	 * @param projectSlug                the SignPath project slug
+	 * @param signingPolicySlug          the signing policy slug
+	 * @param artifactConfigurationSlug  optional artifact configuration slug, may be {@code null}
+	 * @param description                optional signing request description, may be {@code null}
+	 * @param parameters                 optional custom key/value parameters, may be {@code null}
+	 * @param artifactPath               path to the artifact file to sign
 	 * @return a {@link SigningRequest} containing the status polling URL
+	 * @throws SignPathException if the API returns a non-201 response
+	 * @throws IOException      on transport-level failures
 	 */
 	public SigningRequest submit(String projectSlug, String signingPolicySlug,
 			String artifactConfigurationSlug, String description,
@@ -133,6 +155,11 @@ public class SignPathClient implements AutoCloseable {
 
 	/**
 	 * Polls the status of a signing request.
+	 *
+	 * @param signingRequest the signing request to poll
+	 * @return the current {@link SigningRequestStatus}
+	 * @throws SignPathException if the API returns an unsuccessful response
+	 * @throws IOException      on transport-level failures
 	 */
 	public SigningRequestStatus getStatus(SigningRequest signingRequest)
 			throws SignPathException, IOException {
@@ -153,6 +180,11 @@ public class SignPathClient implements AutoCloseable {
 
 	/**
 	 * Downloads the signed artifact to the given output path.
+	 *
+	 * @param status     the final signing request status containing the artifact download link
+	 * @param outputPath the local path where the signed artifact will be written
+	 * @throws SignPathException if no signed artifact link is available or the API returns an error
+	 * @throws IOException      on transport-level or I/O failures
 	 */
 	public void downloadSignedArtifact(SigningRequestStatus status, Path outputPath)
 			throws SignPathException, IOException {
@@ -181,6 +213,9 @@ public class SignPathClient implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Releases HTTP resources held by this client.
+	 */
 	@Override
 	public void close() {
 		httpClient.dispatcher().executorService().shutdown();

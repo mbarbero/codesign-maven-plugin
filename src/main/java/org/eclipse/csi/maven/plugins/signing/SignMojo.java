@@ -266,6 +266,13 @@ public class SignMojo extends AbstractMojo {
 		this.settingsDecrypter = settingsDecrypter;
 	}
 
+	/**
+	 * Executes the signing goal: collects artifacts, submits them to the SignPath API,
+	 * polls until completion, and writes the signed artifacts to the output location.
+	 *
+	 * @throws MojoExecutionException on configuration or API errors
+	 * @throws MojoFailureException   when signing completes with a non-success status
+	 */
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipSigning || isSkipSigningFromEnvironment()) {
