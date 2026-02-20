@@ -39,19 +39,32 @@ jobs:
       - name: Build Maven site
         run: ./mvnw -B -ntp -DskipTests package site
 
-      - name: Determine deployment directory
-        id: dest
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            echo "dir=." >> "$GITHUB_OUTPUT"
-          else
-            echo "dir=snapshot" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Deploy to GitHub Pages
+      - name: Deploy SNAPSHOT site
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: target/site
-          destination_dir: ${{ steps.dest.outputs.dir }}
+          destination_dir: snapshot
+          keep_files: true
+
+      - name: Prepare versioned release layout
+        # Copies the site into {version}/ and latest/ so both are published
+        # atomically in a single gh-pages commit.
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p target/gh-pages/"$version"
+          mkdir -p target/gh-pages/latest
+          cp -r target/site/. target/gh-pages/"$version"/
+          cp -r target/site/. target/gh-pages/latest/
+
+      - name: Deploy release site
+        # Deploys {version}/ and latest/ to the gh-pages root.
+        # keep_files: true preserves snapshot/ and all previous {version}/ dirs.
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/gh-pages
           keep_files: true
