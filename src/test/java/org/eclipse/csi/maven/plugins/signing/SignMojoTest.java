@@ -139,6 +139,15 @@ class SignMojoTest {
 	}
 
 	@Test
+	void failsWhenNoFilesFoundAndFailOnNoFilesFoundIsTrue() throws Exception {
+		SignMojo mojo = createMojo();
+		setField(mojo, "includes", new String[]{"*.nonexistent"});
+		setField(mojo, "failOnNoFilesFound", true);
+		assertThrows(MojoFailureException.class, () -> mojo.execute());
+		assertEquals(0, server.getRequestCount());
+	}
+
+	@Test
 	void signsProjectAndAttachedArtifactsByDefault() throws Exception {
 		Path mainArtifact = tempDir.resolve("main.jar");
 		Path attachedArtifact = tempDir.resolve("attached.zip");

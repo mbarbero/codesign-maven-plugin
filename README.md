@@ -117,6 +117,68 @@ The plugin resolves the API token in the following order (first match wins):
 
 If none of these are set, the build fails with an error listing all three options.
 
+## Build Failure Conditions
+
+The `sign` goal can fail the build in two distinct ways, or emit warnings without
+failing.
+
+### Build errors (configuration and infrastructure)
+
+These conditions throw a `MojoExecutionException` and abort the build immediately.
+They indicate a problem in the plugin configuration or in communication with the
+SignPath API.
+
+| Condition | Cause |
+| --- | --- |
+| No API token found | None of the three token sources (`<apiToken>`, `settings.xml`, `SIGNPATH_API_TOKEN`) is configured |
+| HTTP error on submit | The signing-request submission returns a non-201 status code after all retries are exhausted |
+| Missing `Location` header | The SignPath API returns HTTP 201 but without a `Location` header pointing to the new request |
+| HTTP error on status poll | Polling the signing-request status returns a non-2xx status code after all retries are exhausted |
+| HTTP error on download | Downloading the signed artifact returns a non-2xx status code |
+| No signed artifact link | The status response carries `isFinalStatus: true` and `status: Completed` but `signedArtifactLink` is `null` |
+| I/O error writing signed file | A disk or file-system error occurs while writing the temporary file or performing the atomic rename |
+| Directory scan error | An I/O error occurs while walking `baseDirectory` to collect files |
+| Poll interrupted | The thread sleeping between status-poll attempts is interrupted |
+
+**Retries.** Before an HTTP or network error is treated as fatal, the plugin retries
+on HTTP 429, 502, 503, 504 and on connection/read timeouts. Retries stop when
+either `maxRetries` attempts have been made or the `retryTimeout` window has
+elapsed, whichever comes first. Once retries are exhausted the last observed error
+is reported as a build error.
+
+### Build failures (signing outcome)
+
+These conditions throw a `MojoFailureException`. They mean that the artifact was
+submitted and processed by SignPath, but signing did not complete successfully.
+
+| Condition | Typical reason |
+| --- | --- |
+| `Failed` signing status | SignPath rejected the artifact (e.g. policy validation error, internal server error) |
+| `Denied` signing status | A required approval step was rejected by a reviewer |
+| `Canceled` signing status | The signing request was canceled before completion |
+| No files found (opt-in) | No files matched the configured patterns and no project/attached artifacts were selected, with `<failOnNoFilesFound>true</failOnNoFilesFound>` |
+
+For signing-status failures, the build log includes the `status` and
+`workflowStatus` fields from the API response to aid diagnosis.
+
+To fail the build when no files are selected for signing, set:
+
+```xml
+<failOnNoFilesFound>true</failOnNoFilesFound>
+```
+
+or pass `-Dsignpath.failOnNoFilesFound=true` on the command line.
+
+### Non-fatal conditions (warnings, no build failure)
+
+The following situations log a warning and let the build continue successfully.
+
+| Condition | Logged message |
+| --- | --- |
+| No files match the configured patterns and no project/attached artifacts are selected (default) | `[WARNING] No files selected for signing` |
+| A project or attached artifact's file path does not exist on disk | `[WARNING] Skipping <type> because file does not exist: <path>` |
+| Signing is skipped via `<skip>true</skip>`, `-Dsignpath.skip`, `-Dsignpath.skipSigning`, or `SIGNPATH_SKIP_SIGNING=1\|true\|yes` | `[INFO] Signing is skipped` |
+
 ## Building
 
 ```shell

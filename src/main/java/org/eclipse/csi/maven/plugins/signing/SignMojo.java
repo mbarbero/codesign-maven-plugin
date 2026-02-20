@@ -241,6 +241,15 @@ public class SignMojo extends AbstractMojo {
 	private Map<String, String> parameters;
 
 	/**
+	 * Fails the build when no files are found to sign.
+	 * <p>
+	 * Optional. Mapped to {@code -Dsignpath.failOnNoFilesFound}. Default is
+	 * {@code false}.
+	 */
+	@Parameter(property = "signpath.failOnNoFilesFound", defaultValue = "false")
+	private boolean failOnNoFilesFound;
+
+	/**
 	 * Skips plugin execution.
 	 * <p>
 	 * Optional. Mapped to {@code -Dsignpath.skip}. Default is {@code false}.
@@ -284,6 +293,9 @@ public class SignMojo extends AbstractMojo {
 
 		List<Path> filesToSign = collectFilesToSign();
 		if (filesToSign.isEmpty()) {
+			if (failOnNoFilesFound) {
+				throw new MojoFailureException("No files found to sign");
+			}
 			getLog().warn("No files selected for signing");
 			return;
 		}
