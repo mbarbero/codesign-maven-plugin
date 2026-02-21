@@ -1,10 +1,10 @@
-name: Opengrep
+name: SAST
 
 on:
   push:
   pull_request:
   schedule:
-    - cron: '47 3 * * 1'
+    - cron: '32 3 * * 1'
   workflow_dispatch:
 
 concurrency:
@@ -14,13 +14,39 @@ concurrency:
 permissions: {}
 
 jobs:
+  codeql:
+    name: Analyze (CodeQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      security-events: write # Required to upload CodeQL SARIF results to GitHub code scanning.
+      actions: read # Required so CodeQL actions can access workflow/action metadata.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        with:
+          languages: java-kotlin,actions
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+
   opengrep:
     name: Analyze (Opengrep)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
 
     permissions:
-      contents: read
       security-events: write # Required to upload SARIF results to GitHub code scanning.
       actions: read          # Required so the upload-sarif action can access workflow metadata.
 
