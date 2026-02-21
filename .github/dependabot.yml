@@ -12,6 +12,15 @@ updates:
     commit-message:
       prefix: build
       include: scope
+    groups:
+      maven-plugins:
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "org.codehaus.mojo:*"
+          - "org.jreleaser:*"
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: "/"
@@ -25,3 +34,7 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    groups:
+      github-actions:
+        patterns:
+          - "*"
