@@ -14,68 +14,67 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
-
 import org.junit.jupiter.api.Test;
 
 class SigningRequestStatusTest {
 
-	private static final String STATUS_COMPLETED = "Completed";
-	private static final String STATUS_FAILED = "Failed";
-	private static final String STATUS_DENIED = "Denied";
-	private static final String STATUS_CANCELED = "Canceled";
-	private static final String SIGNED_URL = "https://example.com/signed";
-	private static final String UNSIGNED_URL = "https://example.com/unsigned";
+  private static final String STATUS_COMPLETED = "Completed";
+  private static final String STATUS_FAILED = "Failed";
+  private static final String STATUS_DENIED = "Denied";
+  private static final String STATUS_CANCELED = "Canceled";
+  private static final String SIGNED_URL = "https://example.com/signed";
+  private static final String UNSIGNED_URL = "https://example.com/unsigned";
 
-	@Test
-	void completedStatus() {
-		SigningRequestStatus status = new SigningRequestStatus(
-				STATUS_COMPLETED, "Done", true,
-				URI.create(SIGNED_URL), URI.create(UNSIGNED_URL));
-		assertTrue(status.isCompleted());
-		assertFalse(status.isFailed());
-		assertFalse(status.isDenied());
-		assertFalse(status.isCanceled());
-		assertTrue(status.isFinalStatus());
-	}
+  @Test
+  void completedStatus() {
+    SigningRequestStatus status =
+        new SigningRequestStatus(
+            STATUS_COMPLETED, "Done", true, URI.create(SIGNED_URL), URI.create(UNSIGNED_URL));
+    assertTrue(status.isCompleted());
+    assertFalse(status.isFailed());
+    assertFalse(status.isDenied());
+    assertFalse(status.isCanceled());
+    assertTrue(status.isFinalStatus());
+  }
 
-	@Test
-	void failedStatus() {
-		SigningRequestStatus status = new SigningRequestStatus(
-				STATUS_FAILED, "Error", true, null, null);
-		assertFalse(status.isCompleted());
-		assertTrue(status.isFailed());
-		assertFalse(status.isDenied());
-		assertFalse(status.isCanceled());
-	}
+  @Test
+  void failedStatus() {
+    SigningRequestStatus status =
+        new SigningRequestStatus(STATUS_FAILED, "Error", true, null, null);
+    assertFalse(status.isCompleted());
+    assertTrue(status.isFailed());
+    assertFalse(status.isDenied());
+    assertFalse(status.isCanceled());
+  }
 
-	@Test
-	void deniedStatus() {
-		SigningRequestStatus status = new SigningRequestStatus(
-				STATUS_DENIED, "PolicyDenied", true, null, null);
-		assertFalse(status.isCompleted());
-		assertFalse(status.isFailed());
-		assertTrue(status.isDenied());
-		assertFalse(status.isCanceled());
-	}
+  @Test
+  void deniedStatus() {
+    SigningRequestStatus status =
+        new SigningRequestStatus(STATUS_DENIED, "PolicyDenied", true, null, null);
+    assertFalse(status.isCompleted());
+    assertFalse(status.isFailed());
+    assertTrue(status.isDenied());
+    assertFalse(status.isCanceled());
+  }
 
-	@Test
-	void canceledStatus() {
-		SigningRequestStatus status = new SigningRequestStatus(
-				STATUS_CANCELED, "UserCanceled", true, null, null);
-		assertFalse(status.isCompleted());
-		assertFalse(status.isFailed());
-		assertFalse(status.isDenied());
-		assertTrue(status.isCanceled());
-	}
+  @Test
+  void canceledStatus() {
+    SigningRequestStatus status =
+        new SigningRequestStatus(STATUS_CANCELED, "UserCanceled", true, null, null);
+    assertFalse(status.isCompleted());
+    assertFalse(status.isFailed());
+    assertFalse(status.isDenied());
+    assertTrue(status.isCanceled());
+  }
 
-	@Test
-	void inProgressStatus() {
-		SigningRequestStatus status = new SigningRequestStatus(
-				"InProgress", "Processing", false, null, null);
-		assertFalse(status.isCompleted());
-		assertFalse(status.isFailed());
-		assertFalse(status.isDenied());
-		assertFalse(status.isCanceled());
-		assertFalse(status.isFinalStatus());
-	}
+  @Test
+  void inProgressStatus() {
+    SigningRequestStatus status =
+        new SigningRequestStatus("InProgress", "Processing", false, null, null);
+    assertFalse(status.isCompleted());
+    assertFalse(status.isFailed());
+    assertFalse(status.isDenied());
+    assertFalse(status.isCanceled());
+    assertFalse(status.isFinalStatus());
+  }
 }
