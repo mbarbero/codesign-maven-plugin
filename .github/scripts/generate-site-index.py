@@ -3,7 +3,7 @@
 
 import os
 import re
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from string import Template
 
 STORE = "target/gh-pages-store"

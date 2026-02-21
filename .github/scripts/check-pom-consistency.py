@@ -13,7 +13,7 @@ Verifies:
 import fnmatch
 import re
 import sys
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from pathlib import Path
 
 NS = "http://maven.apache.org/POM/4.0.0"

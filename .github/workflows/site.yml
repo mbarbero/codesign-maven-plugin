@@ -82,6 +82,9 @@ jobs:
           echo "$version" > "target/gh-pages-store/${version}/.version"
           echo "$version" > target/gh-pages-store/latest/.version
 
+      - name: Install Python dependencies
+        run: pip install defusedxml
+
       - name: Generate root index page
         run: python3 .github/scripts/generate-site-index.py
 

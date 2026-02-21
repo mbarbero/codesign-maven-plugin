@@ -23,5 +23,8 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install Python dependencies
+        run: pip install defusedxml
+
       - name: Check plugin version consistency
         run: python3 .github/scripts/check-pom-consistency.py
