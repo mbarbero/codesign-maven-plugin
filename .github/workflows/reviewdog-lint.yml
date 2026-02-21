@@ -1,0 +1,61 @@
+name: reviewdog-lint
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  actionlint:
+    name: actionlint (reviewdog)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to post review comments
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: actionlint with reviewdog
+        uses: reviewdog/action-actionlint@0d952c597ef8459f634d7145b0b044a9699e5e43 # v1.71.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          filter_mode: added
+          fail_level: error
+          level: warning
+
+  ruff:
+    name: ruff (reviewdog)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to post review comments
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: ruff with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ruff check .github/scripts \
+            | reviewdog -f=ruff -name="ruff" -reporter=github-pr-review -filter-mode=added -fail-level=error
