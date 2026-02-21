@@ -280,6 +280,10 @@
                   <version>[21,)</version>
                 </requireJavaVersion>
                 <dependencyConvergence />
+                <requireReleaseDeps>
+                  <message>SNAPSHOT dependencies are not allowed.</message>
+                  <searchTransitive>true</searchTransitive>
+                </requireReleaseDeps>
               </rules>
             </configuration>
           </execution>
