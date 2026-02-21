@@ -21,7 +21,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Java
@@ -35,18 +34,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install pre-commit runner
-        run: pip install prek
-
-      - name: Run pre-commit
+      - name: Run pre-commit (action)
         id: precommit
-        shell: bash
-        run: |
-          set +e
-          prek run --all-files --show-diff-on-failure
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          set -e
+        continue-on-error: true
+        uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
+        with:
+          extra-args: --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
         if: ${{ always() }}
@@ -56,7 +49,7 @@ jobs:
           fail_on_error: "false"
 
       - name: Fail if pre-commit found issues
-        if: ${{ steps.precommit.outputs.exit_code != '0' }}
+        if: ${{ steps.precommit.outcome == 'failure' }}
         shell: bash
         run: |
           echo "::error::Pre-commit checks failed. Run locally: prek run --all-files"
