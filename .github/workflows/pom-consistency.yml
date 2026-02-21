@@ -1,4 +1,4 @@
-name: Check POM/dependabot consistency
+name: POM Consistency
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   check:
-    name: Check POM/dependabot consistency
+    name: Analyze (POM Consistency)
     runs-on: ubuntu-latest
 
     steps:
