@@ -40,8 +40,16 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Set up cdxgen
+        run: npm install -g @cyclonedx/cdxgen
+
+      - name: Set up CycloneDX CLI
+        run: |
+          dotnet tool install --global CycloneDX
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
       - name: Build release artifacts
-        run: ./mvnw -B -ntp -P integration-tests,release clean verify
+        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release clean verify
 
       - name: Run JReleaser
         env:
@@ -57,4 +65,4 @@ jobs:
           if [ "$DRY_RUN" = "true" ]; then
             extra_args+=("-Djreleaser.dry.run=true")
           fi
-          ./mvnw -B -ntp jreleaser:full-release "${extra_args[@]}"
+          ./mvnw -B -ntp -DskipTests jreleaser:full-release "${extra_args[@]}"

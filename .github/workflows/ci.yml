@@ -30,5 +30,13 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Set up cdxgen
+        run: npm install -g @cyclonedx/cdxgen
+
+      - name: Set up CycloneDX CLI
+        run: |
+          dotnet tool install --global CycloneDX
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
       - name: Build and run tests
-        run: ./mvnw -B -ntp verify
+        run: ./mvnw -B -ntp -P integration-tests,generate-sbom verify
