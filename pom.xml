@@ -441,7 +441,12 @@
             <executions>
               <execution>
                 <id>reserve-wiremock-port</id>
-                <phase>pre-integration-test</phase>
+                <!-- Use process-test-resources rather than pre-integration-test:
+                     exec-maven-plugin is also declared in the generate-sbom profile,
+                     and the merged effective POM can order exec before build-helper
+                     within the same phase, leaving ${mockserver.port} unset when
+                     WireMock starts. Binding to an earlier phase avoids this. -->
+                <phase>process-test-resources</phase>
                 <goals>
                   <goal>reserve-network-port</goal>
                 </goals>
