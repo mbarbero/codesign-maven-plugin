@@ -77,10 +77,20 @@ prek install
 
 This installs two hooks driven by `.pre-commit-config.yaml`:
 
-- **pre-commit** — runs [zizmor](https://github.com/woodruffw/zizmor)
-  (GitHub Actions security linter) and the Maven unit tests on every
-  `git commit`.
+- **pre-commit** — runs:
+  - [zizmor](https://github.com/woodruffw/zizmor) (GitHub Actions security linter)
+  - `actionlint` and YAML validation for GitHub workflows
+  - `ruff`/`ruff-format` for Python scripts under `.github/scripts`
+  - `google-java-format` for Java sources under `src/`
+  - the local POM consistency check and Maven unit tests
+  on every `git commit`.
 - **pre-push** — runs the Maven integration tests on every `git push`.
+
+### Pull request checks
+
+CI also runs the same pre-commit checks on pull requests. In addition,
+reviewdog posts granular inline comments/suggestions for workflow and
+Python lint findings.
 
 ## Contact
 
