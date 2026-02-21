@@ -86,7 +86,11 @@ def extract_maven_plugins_patterns(text):
 
     # Locate the maven ecosystem block
     maven_line = next(
-        (i for i, l in enumerate(lines) if re.search(r"package-ecosystem:\s*maven\b", l)),
+        (
+            i
+            for i, line in enumerate(lines)
+            if re.search(r"package-ecosystem:\s*maven\b", line)
+        ),
         None,
     )
     if maven_line is None:

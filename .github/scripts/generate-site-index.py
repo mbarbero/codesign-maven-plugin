@@ -36,57 +36,54 @@ RELEASE_ITEM = '      <li><a href="{v}/">v{v}</a></li>'
 
 
 def version_key(v):
-    return tuple(
-        (0, int(x)) if x.isdigit() else (1, x)
-        for x in re.split(r'[.\-]', v)
-    )
+    return tuple((0, int(x)) if x.isdigit() else (1, x) for x in re.split(r"[.\-]", v))
 
 
-def read_pom_field(tag, pom_path='pom.xml'):
-    ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
+def read_pom_field(tag, pom_path="pom.xml"):
+    ns = {"m": "http://maven.apache.org/POM/4.0.0"}
     root = ET.parse(pom_path).getroot()
-    el = root.find(f'm:{tag}', ns)
-    return el.text.strip() if el is not None else ''
+    el = root.find(f"m:{tag}", ns)
+    return el.text.strip() if el is not None else ""
 
 
 def read_stored_version(directory):
     try:
-        with open(os.path.join(STORE, directory, '.version')) as f:
+        with open(os.path.join(STORE, directory, ".version")) as f:
             return f.read().strip()
     except OSError:
         return None
 
 
 versions = sorted(
-    [e.name for e in os.scandir(STORE) if e.is_dir() and re.match(r'^\d', e.name)],
+    [e.name for e in os.scandir(STORE) if e.is_dir() and re.match(r"^\d", e.name)],
     key=version_key,
     reverse=True,
 )
 
 sections = []
 
-if os.path.isdir(os.path.join(STORE, 'latest')):
-    latest_version = read_stored_version('latest') or (versions[0] if versions else '')
+if os.path.isdir(os.path.join(STORE, "latest")):
+    latest_version = read_stored_version("latest") or (versions[0] if versions else "")
     sections.append(LATEST_SECTION.format(version=latest_version))
 
-if os.path.isdir(os.path.join(STORE, 'snapshot')):
-    snapshot_version = read_stored_version('snapshot') or ''
+if os.path.isdir(os.path.join(STORE, "snapshot")):
+    snapshot_version = read_stored_version("snapshot") or ""
     sections.append(SNAPSHOT_SECTION.format(version=snapshot_version))
 
 if versions:
-    items = '\n'.join(RELEASE_ITEM.format(v=v) for v in versions)
+    items = "\n".join(RELEASE_ITEM.format(v=v) for v in versions)
     sections.append(ALL_RELEASES_SECTION.format(items=items))
 
-with open(os.path.join(SCRIPT_DIR, 'site-index-template.html')) as f:
+with open(os.path.join(SCRIPT_DIR, "site-index-template.html")) as f:
     template = Template(f.read())
 
 html = template.substitute(
-    name=read_pom_field('name'),
-    description=read_pom_field('description'),
-    sections='\n'.join(sections),
+    name=read_pom_field("name"),
+    description=read_pom_field("description"),
+    sections="\n".join(sections),
 )
 
-with open(os.path.join(STORE, 'index.html'), 'w') as f:
+with open(os.path.join(STORE, "index.html"), "w") as f:
     f.write(html)
 
 print("Generated index.html with %d release(s)" % len(versions))
