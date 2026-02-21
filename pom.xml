@@ -496,6 +496,7 @@
                        step is needed. -->
                   <async>true</async>
                   <outputFile>${project.build.directory}/wiremock.log</outputFile>
+                  <redirectStderrToStdout>true</redirectStderrToStdout>
                   <arguments>
                     <argument>-jar</argument>
                     <argument>${project.build.directory}/wiremock-standalone.jar</argument>
@@ -527,7 +528,7 @@
                     <waitfor maxwait="30" maxwaitunit="second"
                              checkevery="500" checkeveryunit="millisecond"
                              timeoutproperty="wiremock.start.timeout">
-                      <http url="http://localhost:${mockserver.port}/__admin/health"/>
+                      <http url="http://127.0.0.1:${mockserver.port}/__admin/health"/>
                     </waitfor>
                     <fail if="wiremock.start.timeout"
                           message="WireMock did not become healthy within 30 s on port ${mockserver.port}"/>

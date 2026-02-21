@@ -44,3 +44,7 @@ jobs:
 
       - name: Build and run tests
         run: ./mvnw -B -ntp -P integration-tests,generate-sbom verify
+
+      - name: Show WireMock log on failure
+        if: failure()
+        run: cat target/wiremock.log 2>/dev/null || echo "(WireMock log not found)"
