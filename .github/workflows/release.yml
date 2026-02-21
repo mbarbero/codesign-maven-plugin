@@ -44,9 +44,13 @@ jobs:
         run: npm install -g @cyclonedx/cdxgen
 
       - name: Set up CycloneDX CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          dotnet tool install --global CycloneDX
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          version=$(gh release view --repo CycloneDX/cyclonedx-cli --json tagName --jq .tagName)
+          curl -fsSL "https://github.com/CycloneDX/cyclonedx-cli/releases/download/${version}/cyclonedx-linux-x64" \
+            -o /usr/local/bin/cyclonedx
+          chmod +x /usr/local/bin/cyclonedx
 
       - name: Build release artifacts
         run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release clean verify
