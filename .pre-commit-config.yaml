@@ -49,6 +49,14 @@ repos:
         files: ^pom\.xml$|^\.github/dependabot\.yml$
         pass_filenames: false
 
+      - id: poutine
+        name: Analyze workflows (Poutine)
+        language: system
+        entry: poutine
+        args: [analyze_local, ., --format, pretty]
+        files: ^\.github/workflows/.*\.(yml|yaml)$
+        pass_filenames: false
+
       - id: unit-tests
         name: Unit tests
         language: system
