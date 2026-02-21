@@ -185,6 +185,24 @@ The following situations log a warning and let the build continue successfully.
 mvn clean verify
 ```
 
+To generate both SBOMs in one build (plugin dependencies + GitHub Actions),
+enable the `generate-sbom` profile. This profile runs both generators
+in the `package` phase:
+
+```shell
+mvn clean verify -Pgenerate-sbom
+```
+
+Prerequisite: install CycloneDX CLI (`cyclonedx`) to merge SBOMs into a single file.
+
+This writes:
+
+- `target/bom.json` (CycloneDX Maven plugin)
+- `target/bom_gha.json` (`cdxgen -t github`)
+- `target/bom_all.json` (merged CycloneDX JSON)
+
+The merged file is attached as an additional Maven artifact with classifier `bom-all`.
+
 ## Releasing (Maven Central via JReleaser)
 
 This project includes an rlease pipeline based on JReleaser.
@@ -193,6 +211,7 @@ This project includes an rlease pipeline based on JReleaser.
 - Trigger: push a version tag (for example `v1.0.0`) or run manually via
   `workflow_dispatch`
 - Build profile: `release`
+- SBOMs: the `release` profile includes both generators, produces merged `target/bom_all.json`, and attaches it with classifier `bom-all`
 
 ### Required GitHub Secrets
 

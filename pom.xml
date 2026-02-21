@@ -229,7 +229,7 @@
             <includeRuntimeScope>true</includeRuntimeScope>
             <includeTestScope>false</includeTestScope>
             <includeSystemScope>true</includeSystemScope>
-            <outputFormat>all</outputFormat>
+            <outputFormat>json</outputFormat>
             <outputName>bom</outputName>
           </configuration>
         </plugin>
@@ -248,18 +248,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.cyclonedx</groupId>
-        <artifactId>cyclonedx-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>makeBom</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
@@ -352,6 +340,94 @@
   </reporting>
 
   <profiles>
+    <profile>
+      <id>generate-sbom</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-project-sbom</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>makeBom</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-github-actions-sbom</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <workingDirectory>${project.basedir}</workingDirectory>
+                  <executable>cdxgen</executable>
+                  <arguments>
+                    <argument>-t</argument>
+                    <argument>github</argument>
+                    <argument>-o</argument>
+                    <argument>${project.build.directory}/bom_gha.json</argument>
+                    <argument>--json-pretty</argument>
+                    <argument>.</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>merge-sbom</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <workingDirectory>${project.basedir}</workingDirectory>
+                  <executable>cyclonedx</executable>
+                  <arguments>
+                    <argument>merge</argument>
+                    <argument>--input-files</argument>
+                    <argument>${project.build.directory}/bom.json</argument>
+                    <argument>${project.build.directory}/bom_gha.json</argument>
+                    <argument>--output-file</argument>
+                    <argument>${project.build.directory}/bom_all.json</argument>
+                    <argument>--output-format</argument>
+                    <argument>json</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-bom-all</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.build.directory}/bom_all.json</file>
+                      <type>json</type>
+                      <classifier>bom-all</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>integration-tests</id>
       <activation>
