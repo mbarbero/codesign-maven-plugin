@@ -8,6 +8,36 @@ repos:
     hooks:
       - id: zizmor
 
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        files: ^\.github/workflows/.*\.(yml|yaml)$
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+        files: ^\.github/workflows/.*\.(yml|yaml)$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^\.github/scripts/.*\.py$
+      - id: ruff-format
+        files: ^\.github/scripts/.*\.py$
+
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.16.0
+    hooks:
+      - id: pretty-format-java
+        args: [--autofix]
+        files: ^src/.*\.java$
+
   - repo: local
     hooks:
       - id: check-pom-consistency
