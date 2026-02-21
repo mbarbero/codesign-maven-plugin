@@ -1,0 +1,68 @@
+name: Opengrep
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '47 3 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  opengrep:
+    name: Analyze (Opengrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      security-events: write # Required to upload SARIF results to GitHub code scanning.
+      actions: read          # Required so the upload-sarif action can access workflow metadata.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+
+      - name: Download Opengrep
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(gh release view --repo opengrep/opengrep --json tagName --jq .tagName)
+          base="https://github.com/opengrep/opengrep/releases/download/${version}/opengrep_manylinux_x86"
+          curl -fsSL "${base}"      -o opengrep
+          curl -fsSL "${base}.cert" -o opengrep.cert
+          curl -fsSL "${base}.sig"  -o opengrep.sig
+          chmod +x opengrep
+
+      - name: Verify Opengrep signature
+        run: |
+          cosign verify-blob opengrep \
+            --certificate opengrep.cert \
+            --signature opengrep.sig \
+            --certificate-identity-regexp='https://github.com/opengrep/opengrep/' \
+            --certificate-oidc-issuer='https://token.actions.githubusercontent.com'
+
+      - name: Run Opengrep scan
+        run: |
+          ./opengrep scan \
+            --config p/java \
+            --config p/owasp-top-ten \
+            --sarif-output opengrep.sarif \
+            .
+
+      - name: Upload results to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        with:
+          sarif_file: opengrep.sarif
+          category: opengrep
