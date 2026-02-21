@@ -17,5 +17,4 @@ import java.net.URI;
  *
  * @param statusUrl the URL from the Location header of the submit response
  */
-public record SigningRequest(URI statusUrl) {
-}
+public record SigningRequest(URI statusUrl) {}
