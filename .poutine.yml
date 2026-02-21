@@ -1,0 +1,10 @@
+# Skip findings if any rules in this list matches the finding's properties.
+# Each rule can have the following keys: job, level, osv_id, path, purl, rule.
+# The value of each key is a string or a list of strings.
+# default: []
+skip:
+
+  # skip findings of a rule about a list of packages
+  - rule: github_action_from_unverified_creator_used
+    purl:
+      - pkg:githubactions/zizmorcore/zizmor-action
