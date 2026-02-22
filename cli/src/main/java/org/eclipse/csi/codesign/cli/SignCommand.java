@@ -61,7 +61,7 @@ import picocli.CommandLine.Spec;
     sortOptions = false,
     usageHelpAutoWidth = true,
     mixinStandardHelpOptions = true)
-public class SignCommand implements Callable<Integer> {
+class SignCommand implements Callable<Integer> {
 
   @Spec CommandSpec spec;
 

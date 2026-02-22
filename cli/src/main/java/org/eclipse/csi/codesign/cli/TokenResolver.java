@@ -25,7 +25,7 @@ import java.util.Properties;
  *   <li>{@code api.token} key in {@code ~/.config/codesign/config.properties}
  * </ol>
  */
-public class TokenResolver {
+class TokenResolver {
 
   static final String ENV_VAR = "CSI_CODESIGN_API_TOKEN";
 

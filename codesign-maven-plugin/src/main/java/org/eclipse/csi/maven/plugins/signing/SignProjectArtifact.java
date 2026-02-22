@@ -21,7 +21,7 @@ package org.eclipse.csi.maven.plugins.signing;
  *   <li>{@link #FALSE} – never include the project artifact.
  * </ul>
  */
-public enum SignProjectArtifact {
+enum SignProjectArtifact {
   AUTO,
   TRUE,
   FALSE

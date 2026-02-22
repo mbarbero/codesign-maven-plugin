@@ -26,7 +26,7 @@ import okhttp3.Response;
  * <p>Retries on HTTP 429, 502, 503, 504 and {@link IOException} (connection failures). Retries are
  * time-bounded by a deadline computed from the configured timeout.
  */
-public class RetryInterceptor implements Interceptor {
+class RetryInterceptor implements Interceptor {
 
   private static final Logger LOG = Logger.getLogger(RetryInterceptor.class.getName());
   private static final Set<Integer> RETRYABLE_STATUS_CODES = Set.of(429, 502, 503, 504);
@@ -42,7 +42,7 @@ public class RetryInterceptor implements Interceptor {
    * @param retryInterval the delay between consecutive retry attempts
    * @param maxRetries the maximum number of retry attempts
    */
-  public RetryInterceptor(Duration retryTimeout, Duration retryInterval, int maxRetries) {
+  RetryInterceptor(Duration retryTimeout, Duration retryInterval, int maxRetries) {
     this.retryTimeout = retryTimeout;
     this.retryInterval = retryInterval;
     this.maxRetries = maxRetries;
