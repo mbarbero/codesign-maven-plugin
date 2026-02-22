@@ -86,6 +86,16 @@ This installs two hooks driven by `.pre-commit-config.yaml`:
   on every `git commit`.
 - **pre-push** — runs the Maven integration tests on every `git push`.
 
+### Running the Python scripts manually
+
+The scripts under `.github/scripts/` require `defusedxml`. Use `uv` to run
+them without a permanent virtual environment:
+
+```sh
+uv run --with defusedxml python3 .github/scripts/check-pom-consistency.py
+uv run --with defusedxml python3 .github/scripts/generate-site-index.py
+```
+
 ### Pull request checks
 
 CI also runs the same pre-commit checks on pull requests. In addition,
