@@ -13,7 +13,7 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.csi</groupId>
-        <artifactId>codesigning-maven-plugin</artifactId>
+        <artifactId>codesign-maven-plugin</artifactId>
         <version>@project.version@</version>
         <executions>
           <execution>
@@ -26,7 +26,7 @@
           <organizationId>token-settings-org</organizationId>
           <projectSlug>test-project</projectSlug>
           <signingPolicySlug>test-policy</signingPolicySlug>
-          <serverId>codesigning-settings-test</serverId>
+          <serverId>codesign-settings-test</serverId>
           <baseUrl>http://localhost:@mockserver.port@/Api</baseUrl>
           <signProjectArtifact>false</signProjectArtifact>
           <signAttachedArtifacts>false</signAttachedArtifacts>

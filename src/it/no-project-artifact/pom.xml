@@ -27,7 +27,7 @@
       </plugin>
       <plugin>
         <groupId>org.eclipse.csi</groupId>
-        <artifactId>codesigning-maven-plugin</artifactId>
+        <artifactId>codesign-maven-plugin</artifactId>
         <version>@project.version@</version>
         <executions>
           <execution>

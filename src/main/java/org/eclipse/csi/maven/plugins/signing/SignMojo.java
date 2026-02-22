@@ -46,39 +46,39 @@ import org.apache.maven.settings.crypto.SettingsDecryptionResult;
  * signed artifact (either in-place or to the configured output directory).
  *
  * <p>API authentication is resolved from plugin configuration, Maven {@code settings.xml}, or the
- * {@code CSI_CODESIGNING_API_TOKEN} environment variable.
+ * {@code CSI_CODESIGN_API_TOKEN} environment variable.
  */
 @Mojo(name = "sign", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class SignMojo extends AbstractMojo {
 
-  private static final String CSI_CODESIGNING_API_TOKEN = "CSI_CODESIGNING_API_TOKEN";
-  private static final String CSI_CODESIGNING_SKIP_SIGNING = "CSI_CODESIGNING_SKIP_SIGNING";
+  private static final String CSI_CODESIGN_API_TOKEN = "CSI_CODESIGN_API_TOKEN";
+  private static final String CSI_CODESIGN_SKIP_SIGNING = "CSI_CODESIGN_SKIP_SIGNING";
 
   private SettingsDecrypter settingsDecrypter;
 
   /**
    * SignPath organization identifier.
    *
-   * <p>Required. Mapped to {@code -Dcsi.codesigning.organizationId}.
+   * <p>Required. Mapped to {@code -Dcsi.codesign.organizationId}.
    */
-  @Parameter(property = "csi.codesigning.organizationId", required = true)
+  @Parameter(property = "csi.codesign.organizationId", required = true)
   private String organizationId;
 
   /**
    * SignPath API token provided directly in plugin configuration or as a system property.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.apiToken}. If not provided, token resolution
-   * falls back to {@code settings.xml} and environment variables.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.apiToken}. If not provided, token resolution falls
+   * back to {@code settings.xml} and environment variables.
    */
-  @Parameter(property = "csi.codesigning.apiToken")
+  @Parameter(property = "csi.codesign.apiToken")
   private String apiToken;
 
   /**
    * Maven server ID used to resolve the API token from {@code settings.xml} server password.
    *
-   * <p>Optional. Default is {@code codesigning}.
+   * <p>Optional. Default is {@code codesign}.
    */
-  @Parameter(property = "csi.codesigning.serverId", defaultValue = "codesigning")
+  @Parameter(property = "csi.codesign.serverId", defaultValue = "codesign")
   private String serverId;
 
   @Parameter(defaultValue = "${session}", readonly = true)
@@ -90,33 +90,33 @@ public class SignMojo extends AbstractMojo {
   /**
    * SignPath project slug that owns the signing configuration.
    *
-   * <p>Required. Mapped to {@code -Dcsi.codesigning.projectSlug}.
+   * <p>Required. Mapped to {@code -Dcsi.codesign.projectSlug}.
    */
-  @Parameter(property = "csi.codesigning.projectSlug", required = true)
+  @Parameter(property = "csi.codesign.projectSlug", required = true)
   private String projectSlug;
 
   /**
    * SignPath signing policy slug used for submitted artifacts.
    *
-   * <p>Required. Mapped to {@code -Dcsi.codesigning.signingPolicySlug}.
+   * <p>Required. Mapped to {@code -Dcsi.codesign.signingPolicySlug}.
    */
-  @Parameter(property = "csi.codesigning.signingPolicySlug", required = true)
+  @Parameter(property = "csi.codesign.signingPolicySlug", required = true)
   private String signingPolicySlug;
 
   /**
    * Optional SignPath artifact configuration slug.
    *
-   * <p>Mapped to {@code -Dcsi.codesigning.artifactConfigurationSlug}.
+   * <p>Mapped to {@code -Dcsi.codesign.artifactConfigurationSlug}.
    */
-  @Parameter(property = "csi.codesigning.artifactConfigurationSlug")
+  @Parameter(property = "csi.codesign.artifactConfigurationSlug")
   private String artifactConfigurationSlug;
 
   /**
    * Optional signing request description shown in SignPath.
    *
-   * <p>Mapped to {@code -Dcsi.codesigning.description}.
+   * <p>Mapped to {@code -Dcsi.codesign.description}.
    */
-  @Parameter(property = "csi.codesigning.description")
+  @Parameter(property = "csi.codesign.description")
   private String description;
 
   /**
@@ -124,7 +124,7 @@ public class SignMojo extends AbstractMojo {
    *
    * <p>Optional. Default targets the hosted SignPath API endpoint.
    */
-  @Parameter(property = "csi.codesigning.baseUrl", defaultValue = "https://app.signpath.io/Api")
+  @Parameter(property = "csi.codesign.baseUrl", defaultValue = "https://app.signpath.io/Api")
   private String baseUrl;
 
   /**
@@ -156,72 +156,71 @@ public class SignMojo extends AbstractMojo {
    *
    * <p>If unset, signed files overwrite original files in place.
    */
-  @Parameter(property = "csi.codesigning.outputDirectory")
+  @Parameter(property = "csi.codesign.outputDirectory")
   private String outputDirectory;
 
   /**
    * Whether to include the Maven project's main artifact in signing.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.signProjectArtifact}. Default is {@code true}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.signProjectArtifact}. Default is {@code true}.
    */
-  @Parameter(property = "csi.codesigning.signProjectArtifact", defaultValue = "true")
+  @Parameter(property = "csi.codesign.signProjectArtifact", defaultValue = "true")
   private boolean signProjectArtifact;
 
   /**
    * Whether to include Maven attached artifacts in signing.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.signAttachedArtifacts}. Default is {@code
-   * true}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.signAttachedArtifacts}. Default is {@code true}.
    */
-  @Parameter(property = "csi.codesigning.signAttachedArtifacts", defaultValue = "true")
+  @Parameter(property = "csi.codesign.signAttachedArtifacts", defaultValue = "true")
   private boolean signAttachedArtifacts;
 
   /**
    * Polling interval in seconds when checking signing request status.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.pollInterval}. Default is 5.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.pollInterval}. Default is 5.
    */
-  @Parameter(property = "csi.codesigning.pollInterval", defaultValue = "5")
+  @Parameter(property = "csi.codesign.pollInterval", defaultValue = "5")
   private int pollInterval;
 
   /**
    * Delay in seconds between HTTP retry attempts.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.retryInterval}. Default is 30.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.retryInterval}. Default is 30.
    */
-  @Parameter(property = "csi.codesigning.retryInterval", defaultValue = "30")
+  @Parameter(property = "csi.codesign.retryInterval", defaultValue = "30")
   private int retryInterval;
 
   /**
    * Maximum retry time window in seconds for transient HTTP failures.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.retryTimeout}. Default is 600.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.retryTimeout}. Default is 600.
    */
-  @Parameter(property = "csi.codesigning.retryTimeout", defaultValue = "600")
+  @Parameter(property = "csi.codesign.retryTimeout", defaultValue = "600")
   private int retryTimeout;
 
   /**
    * Maximum number of retry attempts for transient HTTP failures.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.maxRetries}. Default is 10.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.maxRetries}. Default is 10.
    */
-  @Parameter(property = "csi.codesigning.maxRetries", defaultValue = "10")
+  @Parameter(property = "csi.codesign.maxRetries", defaultValue = "10")
   private int maxRetries;
 
   /**
    * Read/write HTTP timeout in seconds for SignPath API calls.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.httpTimeout}. Default is 300.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.httpTimeout}. Default is 300.
    */
-  @Parameter(property = "csi.codesigning.httpTimeout", defaultValue = "300")
+  @Parameter(property = "csi.codesign.httpTimeout", defaultValue = "300")
   private int httpTimeout;
 
   /**
    * HTTP connection timeout in seconds for SignPath API calls.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.connectTimeout}. Default is 30.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.connectTimeout}. Default is 30.
    */
-  @Parameter(property = "csi.codesigning.connectTimeout", defaultValue = "30")
+  @Parameter(property = "csi.codesign.connectTimeout", defaultValue = "30")
   private int connectTimeout;
 
   /** Optional custom key/value parameters forwarded to SignPath in the submit request. */
@@ -230,25 +229,25 @@ public class SignMojo extends AbstractMojo {
   /**
    * Fails the build when no files are found to sign.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.failOnNoFilesFound}. Default is {@code false}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.failOnNoFilesFound}. Default is {@code false}.
    */
-  @Parameter(property = "csi.codesigning.failOnNoFilesFound", defaultValue = "false")
+  @Parameter(property = "csi.codesign.failOnNoFilesFound", defaultValue = "false")
   private boolean failOnNoFilesFound;
 
   /**
    * Skips plugin execution.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.skip}. Default is {@code false}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.skip}. Default is {@code false}.
    */
-  @Parameter(property = "csi.codesigning.skip", defaultValue = "false")
+  @Parameter(property = "csi.codesign.skip", defaultValue = "false")
   private boolean skip;
 
   /**
    * Alias for skipping plugin execution.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesigning.skipSigning}. Default is {@code false}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.skipSigning}. Default is {@code false}.
    */
-  @Parameter(property = "csi.codesigning.skipSigning", defaultValue = "false")
+  @Parameter(property = "csi.codesign.skipSigning", defaultValue = "false")
   private boolean skipSigning;
 
   /**
@@ -286,8 +285,8 @@ public class SignMojo extends AbstractMojo {
 
     String resolvedApiToken = resolveApiToken();
 
-    CodesigningClient.Config config =
-        new CodesigningClient.Config(
+    CodesignClient.Config config =
+        new CodesignClient.Config(
             baseUrl,
             organizationId,
             resolvedApiToken,
@@ -297,7 +296,7 @@ public class SignMojo extends AbstractMojo {
             Duration.ofSeconds(retryInterval),
             maxRetries);
 
-    try (CodesigningClient client = new CodesigningClient(config)) {
+    try (CodesignClient client = new CodesignClient(config)) {
       for (Path filePath : filesToSign) {
         signFile(client, filePath);
       }
@@ -340,7 +339,7 @@ public class SignMojo extends AbstractMojo {
   }
 
   /**
-   * Checks whether signing should be skipped based on the {@value #CSI_CODESIGNING_SKIP_SIGNING}
+   * Checks whether signing should be skipped based on the {@value #CSI_CODESIGN_SKIP_SIGNING}
    * environment variable.
    *
    * <p>If set to {@code 1}, {@code true}, or {@code yes} (case-insensitive), execution is skipped.
@@ -348,7 +347,7 @@ public class SignMojo extends AbstractMojo {
    * @return {@code true} when environment-based skip is enabled, otherwise {@code false}
    */
   private boolean isSkipSigningFromEnvironment() {
-    String envValue = getEnvironmentVariable(CSI_CODESIGNING_SKIP_SIGNING);
+    String envValue = getEnvironmentVariable(CSI_CODESIGN_SKIP_SIGNING);
     if (envValue == null || envValue.isBlank()) {
       return false;
     }
@@ -360,7 +359,7 @@ public class SignMojo extends AbstractMojo {
             || "yes".equalsIgnoreCase(normalized);
 
     if (skipRequested) {
-      getLog().debug("Skipping signing because " + CSI_CODESIGNING_SKIP_SIGNING + " is set");
+      getLog().debug("Skipping signing because " + CSI_CODESIGN_SKIP_SIGNING + " is set");
     }
 
     return skipRequested;
@@ -370,9 +369,9 @@ public class SignMojo extends AbstractMojo {
    * Resolves the SignPath API token in the following order:
    *
    * <ol>
-   *   <li>{@code csi.codesigning.apiToken} parameter / system property
+   *   <li>{@code csi.codesign.apiToken} parameter / system property
    *   <li>Maven {@code settings.xml} server password for {@code serverId}
-   *   <li>{@value #CSI_CODESIGNING_API_TOKEN} environment variable
+   *   <li>{@value #CSI_CODESIGN_API_TOKEN} environment variable
    * </ol>
    *
    * @return resolved API token
@@ -395,20 +394,20 @@ public class SignMojo extends AbstractMojo {
       }
     }
 
-    String envToken = getEnvironmentVariable(CSI_CODESIGNING_API_TOKEN);
+    String envToken = getEnvironmentVariable(CSI_CODESIGN_API_TOKEN);
     if (envToken != null && !envToken.isBlank()) {
-      getLog().debug("Using API token from " + CSI_CODESIGNING_API_TOKEN + " environment variable");
+      getLog().debug("Using API token from " + CSI_CODESIGN_API_TOKEN + " environment variable");
       return envToken;
     }
 
     throw new MojoExecutionException(
         "No API token found. Provide it via one of the following (in priority order):\n"
-            + "  1. <apiToken> parameter or -Dcsi.codesigning.apiToken system property\n"
+            + "  1. <apiToken> parameter or -Dcsi.codesign.apiToken system property\n"
             + "  2. Server password in settings.xml with server ID '"
             + serverId
             + "'\n"
             + "  3. "
-            + CSI_CODESIGNING_API_TOKEN
+            + CSI_CODESIGN_API_TOKEN
             + " environment variable");
   }
 
@@ -451,7 +450,7 @@ public class SignMojo extends AbstractMojo {
    * @throws MojoExecutionException on API or I/O failures
    * @throws MojoFailureException when signing completes with a non-success status
    */
-  private void signFile(CodesigningClient client, Path filePath)
+  private void signFile(CodesignClient client, Path filePath)
       throws MojoExecutionException, MojoFailureException {
     getLog().info("Submitting for signing: " + filePath);
 
@@ -491,7 +490,7 @@ public class SignMojo extends AbstractMojo {
       }
 
       getLog().info("Successfully signed: " + outputPath);
-    } catch (CodesigningException e) {
+    } catch (CodesignException e) {
       throw new MojoExecutionException("SignPath API error while signing " + filePath, e);
     } catch (IOException e) {
       throw new MojoExecutionException("I/O error while signing " + filePath, e);
@@ -504,12 +503,11 @@ public class SignMojo extends AbstractMojo {
    * @param client SignPath client
    * @param signingRequest request to poll
    * @return final request status
-   * @throws CodesigningException on API-level errors
+   * @throws CodesignException on API-level errors
    * @throws IOException when polling is interrupted or transport fails
    */
-  private SigningRequestStatus pollUntilFinal(
-      CodesigningClient client, SigningRequest signingRequest)
-      throws CodesigningException, IOException {
+  private SigningRequestStatus pollUntilFinal(CodesignClient client, SigningRequest signingRequest)
+      throws CodesignException, IOException {
     while (true) {
       SigningRequestStatus status = client.getStatus(signingRequest);
       getLog()

@@ -11,7 +11,7 @@
 package org.eclipse.csi.maven.plugins.signing;
 
 /** Exception carrying HTTP status code and response body from a failed SignPath API call. */
-public class CodesigningException extends Exception {
+public class CodesignException extends Exception {
 
   private final int httpStatus;
   private final String responseBody;
@@ -22,7 +22,7 @@ public class CodesigningException extends Exception {
    * @param httpStatus the HTTP status code returned by the SignPath API
    * @param responseBody the response body returned by the SignPath API
    */
-  public CodesigningException(int httpStatus, String responseBody) {
+  public CodesignException(int httpStatus, String responseBody) {
     super("SignPath API error (HTTP " + httpStatus + "): " + responseBody);
     this.httpStatus = httpStatus;
     this.responseBody = responseBody;
@@ -34,7 +34,7 @@ public class CodesigningException extends Exception {
    * @param message the detail message
    * @param cause the cause of this exception
    */
-  public CodesigningException(String message, Throwable cause) {
+  public CodesignException(String message, Throwable cause) {
     super(message, cause);
     this.httpStatus = -1;
     this.responseBody = null;

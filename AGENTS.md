@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Project Overview
 
-Eclipse CSI Codesigning Maven Plugin — a Maven plugin that signs build artifacts via the [SignPath](https://app.signpath.io/Api/swagger/index.html) REST API. Part of the Eclipse Common Security Infrastructure (CSI) project. Licensed under EPL-2.0.
+Eclipse CSI Codesign Maven Plugin — a Maven plugin that signs build artifacts via the [SignPath](https://app.signpath.io/Api/swagger/index.html) REST API. Part of the Eclipse Common Security Infrastructure (CSI) project. Licensed under EPL-2.0.
 
 ## Build & Test Commands
 
@@ -30,15 +30,15 @@ Single-package project: `org.eclipse.csi.maven.plugins.signing`
 
 ### Core Components
 
-- **SignMojo** — The Maven plugin entry point (goal: `sign`, phase: `package`). Orchestrates the full signing workflow: scans for files matching glob patterns, resolves API token (parameter → settings.xml → env var `CSI_CODESIGNING_API_TOKEN`), submits artifacts, polls for completion, downloads signed results. Uses Java NIO `PathMatcher` for glob-based file matching.
+- **SignMojo** — The Maven plugin entry point (goal: `sign`, phase: `package`). Orchestrates the full signing workflow: scans for files matching glob patterns, resolves API token (parameter → settings.xml → env var `CSI_CODESIGN_API_TOKEN`), submits artifacts, polls for completion, downloads signed results. Uses Java NIO `PathMatcher` for glob-based file matching.
 
-- **CodesigningClient** — HTTP client wrapping OkHttp. Handles three API operations: `submit()` (multipart POST), `getStatus()` (polling GET), and `downloadSignedArtifact()` (binary GET). Implements `AutoCloseable`. Configured via the inner `Config` record.
+- **CodesignClient** — HTTP client wrapping OkHttp. Handles three API operations: `submit()` (multipart POST), `getStatus()` (polling GET), and `downloadSignedArtifact()` (binary GET). Implements `AutoCloseable`. Configured via the inner `Config` record.
 
 - **RetryInterceptor** — OkHttp `Interceptor` implementing time-bounded and count-bounded retry logic for transient HTTP failures (429, 502, 503, 504) and `IOException`. Uses JDK logging.
 
 - **SigningRequest** / **SigningRequestStatus** — Records modeling the SignPath API response. `SigningRequestStatus` tracks workflow state with predicates (`isCompleted()`, `isFailed()`, `isDenied()`, `isCanceled()`).
 
-- **CodesigningException** — Custom exception carrying HTTP status code and response body for API errors.
+- **CodesignException** — Custom exception carrying HTTP status code and response body for API errors.
 
 ### Key Dependencies
 
