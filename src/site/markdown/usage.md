@@ -9,7 +9,7 @@ Add the plugin to your project's `pom.xml`:
   <plugins>
     <plugin>
       <groupId>org.eclipse.csi</groupId>
-      <artifactId>codesigning-maven-plugin</artifactId>
+      <artifactId>codesign-maven-plugin</artifactId>
       <version>VERSION</version>
       <executions>
         <execution>
@@ -35,16 +35,16 @@ Add the plugin to your project's `pom.xml`:
 The plugin resolves the API token in the following order (first match wins):
 
 1. **Plugin parameter / system property** — `<apiToken>` in the plugin configuration,
-   or `-Dcsi.codesigning.apiToken=<TOKEN>` on the command line.
+   or `-Dcsi.codesign.apiToken=<TOKEN>` on the command line.
 
 2. **Maven `settings.xml`** — the password of the server entry whose `<id>` matches
-   `codesigning` (or the value of `<serverId>` in the plugin configuration):
+   `codesign` (or the value of `<serverId>` in the plugin configuration):
 
    ```xml
    <!-- ~/.m2/settings.xml -->
    <servers>
      <server>
-       <id>codesigning</id>
+       <id>codesign</id>
        <password>YOUR_API_TOKEN</password>
      </server>
    </servers>
@@ -52,7 +52,7 @@ The plugin resolves the API token in the following order (first match wins):
 
    Passwords encrypted with `mvn --encrypt-password` are supported.
 
-3. **Environment variable** — `CSI_CODESIGNING_API_TOKEN`.
+3. **Environment variable** — `CSI_CODESIGN_API_TOKEN`.
 
 If none of these are set, the build fails with an error that lists all three options.
 
@@ -92,10 +92,10 @@ To write them to a dedicated folder instead, set `<outputDirectory>`:
 Signing can be skipped without modifying the POM:
 
 ```shell
-mvn package -Dcsi.codesigning.skip
+mvn package -Dcsi.codesign.skip
 ```
 
-Alternatively, set the environment variable `CSI_CODESIGNING_SKIP_SIGNING=true` to skip
+Alternatively, set the environment variable `CSI_CODESIGN_SKIP_SIGNING=true` to skip
 signing unconditionally (useful in CI pipelines where signing credentials are absent).
 
 ## Passing Additional Parameters to SignPath
@@ -114,5 +114,5 @@ request (e.g. build number, Git commit SHA):
 
 ## Complete Goal Reference
 
-See the [codesigning:sign goal documentation](./sign-mojo.html) for the full list of
+See the [codesign:sign goal documentation](./sign-mojo.html) for the full list of
 configuration parameters.

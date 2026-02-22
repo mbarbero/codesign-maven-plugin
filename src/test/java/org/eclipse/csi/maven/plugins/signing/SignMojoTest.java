@@ -40,9 +40,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 class SignMojoTest {
 
-  private static final String CSI_CODESIGNING_API_TOKEN = "CSI_CODESIGNING_API_TOKEN";
-  private static final String CSI_CODESIGNING_SKIP_SIGNING = "CSI_CODESIGNING_SKIP_SIGNING";
-  private static final String DEFAULT_SERVER_ID = "codesigning";
+  private static final String CSI_CODESIGN_API_TOKEN = "CSI_CODESIGN_API_TOKEN";
+  private static final String CSI_CODESIGN_SKIP_SIGNING = "CSI_CODESIGN_SKIP_SIGNING";
+  private static final String DEFAULT_SERVER_ID = "codesign";
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String APPLICATION_JSON = "application/json";
 
@@ -117,7 +117,7 @@ class SignMojoTest {
         new SignMojo(null) {
           @Override
           String getEnvironmentVariable(String name) {
-            if (CSI_CODESIGNING_SKIP_SIGNING.equals(name)) {
+            if (CSI_CODESIGN_SKIP_SIGNING.equals(name)) {
               return "true";
             }
             return null;
@@ -395,9 +395,9 @@ class SignMojoTest {
         assertThrows(MojoExecutionException.class, () -> mojo.resolveApiToken());
     String message = ex.getMessage();
     assertTrue(message.contains("apiToken"), "Should mention apiToken parameter");
-    assertTrue(message.contains("csi.codesigning.apiToken"), "Should mention system property");
+    assertTrue(message.contains("csi.codesign.apiToken"), "Should mention system property");
     assertTrue(message.contains("settings.xml"), "Should mention settings.xml");
-    assertTrue(message.contains("CSI_CODESIGNING_API_TOKEN"), "Should mention env var");
+    assertTrue(message.contains("CSI_CODESIGN_API_TOKEN"), "Should mention env var");
   }
 
   @Test
@@ -412,7 +412,7 @@ class SignMojoTest {
         new SignMojo(null) {
           @Override
           String getEnvironmentVariable(String name) {
-            if (CSI_CODESIGNING_API_TOKEN.equals(name)) {
+            if (CSI_CODESIGN_API_TOKEN.equals(name)) {
               return envToken;
             }
             return null;

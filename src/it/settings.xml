@@ -4,7 +4,7 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
   <servers>
     <server>
-      <id>codesigning-settings-test</id>
+      <id>codesign-settings-test</id>
       <password>my-settings-token</password>
     </server>
   </servers>

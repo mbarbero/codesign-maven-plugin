@@ -1,4 +1,4 @@
-# Eclipse CSI Codesigning Maven Plugin
+# Eclipse CSI Codesign Maven Plugin
 
 Maven plugin that signs artifacts via the [SignPath](https://about.signpath.io/) REST API.
 
@@ -9,7 +9,7 @@ Add the plugin to your Maven project:
 ```xml
 <plugin>
   <groupId>org.eclipse.csi</groupId>
-  <artifactId>codesigning-maven-plugin</artifactId>
+  <artifactId>codesign-maven-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </plugin>
 ```
@@ -17,11 +17,11 @@ Add the plugin to your Maven project:
 ## Usage
 
 ```shell
-mvn org.eclipse.csi:codesigning-maven-plugin:sign \
-  -Dcsi.codesigning.organizationId=<ORG_ID> \
-  -Dcsi.codesigning.projectSlug=<PROJECT_SLUG> \
-  -Dcsi.codesigning.signingPolicySlug=<POLICY_SLUG> \
-  -Dcsi.codesigning.artifactConfigurationSlug=<CONFIG_SLUG>
+mvn org.eclipse.csi:codesign-maven-plugin:sign \
+  -Dcsi.codesign.organizationId=<ORG_ID> \
+  -Dcsi.codesign.projectSlug=<PROJECT_SLUG> \
+  -Dcsi.codesign.signingPolicySlug=<POLICY_SLUG> \
+  -Dcsi.codesign.artifactConfigurationSlug=<CONFIG_SLUG>
 ```
 
 ## Embedded Project Example (Sign Binaries)
@@ -38,7 +38,7 @@ This example signs `.jar`, `.exe`, and `.dmg` files produced in
   <plugins>
     <plugin>
       <groupId>org.eclipse.csi</groupId>
-      <artifactId>codesigning-maven-plugin</artifactId>
+      <artifactId>codesign-maven-plugin</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <executions>
         <execution>
@@ -98,14 +98,14 @@ Tip: if you omit `outputDirectory`, signed files replace the original files in
 
 The plugin resolves the API token in the following order (first match wins):
 
-1. **Parameter / system property** — `-Dcsi.codesigning.apiToken=<TOKEN>` or `<apiToken>` in the plugin configuration
-2. **Maven `settings.xml`** — server password with ID `codesigning` (or a custom ID via `csi.codesigning.serverId`):
+1. **Parameter / system property** — `-Dcsi.codesign.apiToken=<TOKEN>` or `<apiToken>` in the plugin configuration
+2. **Maven `settings.xml`** — server password with ID `codesign` (or a custom ID via `csi.codesign.serverId`):
 
    ```xml
    <!-- ~/.m2/settings.xml -->
    <servers>
      <server>
-       <id>codesigning</id>
+       <id>codesign</id>
        <password>YOUR_API_TOKEN</password>
      </server>
    </servers>
@@ -113,7 +113,7 @@ The plugin resolves the API token in the following order (first match wins):
 
    Encrypted passwords (via `mvn --encrypt-password`) are supported.
 
-3. **Environment variable** — `CSI_CODESIGNING_API_TOKEN`
+3. **Environment variable** — `CSI_CODESIGN_API_TOKEN`
 
 If none of these are set, the build fails with an error listing all three options.
 
@@ -130,7 +130,7 @@ SignPath API.
 
 | Condition | Cause |
 | --- | --- |
-| No API token found | None of the three token sources (`<apiToken>`, `settings.xml`, `CSI_CODESIGNING_API_TOKEN`) is configured |
+| No API token found | None of the three token sources (`<apiToken>`, `settings.xml`, `CSI_CODESIGN_API_TOKEN`) is configured |
 | HTTP error on submit | The signing-request submission returns a non-201 status code after all retries are exhausted |
 | Missing `Location` header | The SignPath API returns HTTP 201 but without a `Location` header pointing to the new request |
 | HTTP error on status poll | Polling the signing-request status returns a non-2xx status code after all retries are exhausted |
@@ -167,7 +167,7 @@ To fail the build when no files are selected for signing, set:
 <failOnNoFilesFound>true</failOnNoFilesFound>
 ```
 
-or pass `-Dcsi.codesigning.failOnNoFilesFound=true` on the command line.
+or pass `-Dcsi.codesign.failOnNoFilesFound=true` on the command line.
 
 ### Non-fatal conditions (warnings, no build failure)
 
@@ -177,7 +177,7 @@ The following situations log a warning and let the build continue successfully.
 | --- | --- |
 | No files match the configured patterns and no project/attached artifacts are selected (default) | `[WARNING] No files selected for signing` |
 | A project or attached artifact's file path does not exist on disk | `[WARNING] Skipping <type> because file does not exist: <path>` |
-| Signing is skipped via `<skip>true</skip>`, `-Dcsi.codesigning.skip`, `-Dcsi.codesigning.skipSigning`, or `CSI_CODESIGNING_SKIP_SIGNING=1\|true\|yes` | `[INFO] Signing is skipped` |
+| Signing is skipped via `<skip>true</skip>`, `-Dcsi.codesign.skip`, `-Dcsi.codesign.skipSigning`, or `CSI_CODESIGN_SKIP_SIGNING=1\|true\|yes` | `[INFO] Signing is skipped` |
 
 ## Building
 

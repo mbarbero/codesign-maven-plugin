@@ -14,7 +14,7 @@
     signed when no includes are configured.
     build-helper-maven-plugin:attach-artifact attaches target/classes/app.exe (copied
     there by maven-resources-plugin) as an exe artifact in the prepare-package phase,
-    before codesigning:sign runs in the package phase.
+    before codesign:sign runs in the package phase.
   -->
   <build>
     <plugins>
@@ -42,7 +42,7 @@
       </plugin>
       <plugin>
         <groupId>org.eclipse.csi</groupId>
-        <artifactId>codesigning-maven-plugin</artifactId>
+        <artifactId>codesign-maven-plugin</artifactId>
         <version>@project.version@</version>
         <executions>
           <execution>

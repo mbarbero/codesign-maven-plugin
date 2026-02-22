@@ -29,14 +29,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class CodesigningClientTest {
+class CodesignClientTest {
 
   private static final String API_TOKEN = "test-api-token";
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String BEARER_TOKEN = "Bearer " + API_TOKEN;
 
   private MockWebServer server;
-  private CodesigningClient client;
+  private CodesignClient client;
 
   @TempDir Path tempDir;
 
@@ -47,7 +47,7 @@ class CodesigningClientTest {
 
     OkHttpClient httpClient = new OkHttpClient();
     client =
-        new CodesigningClient(httpClient, server.url("/Api").toString(), "test-org-id", API_TOKEN);
+        new CodesignClient(httpClient, server.url("/Api").toString(), "test-org-id", API_TOKEN);
   }
 
   @AfterEach
@@ -113,9 +113,9 @@ class CodesigningClientTest {
     Path artifact = tempDir.resolve("test.jar");
     Files.writeString(artifact, "fake-jar-content");
 
-    CodesigningException ex =
+    CodesignException ex =
         assertThrows(
-            CodesigningException.class,
+            CodesignException.class,
             () -> client.submit("proj", "policy", null, null, null, artifact));
     assertEquals(400, ex.httpStatus());
     assertTrue(ex.responseBody().contains("Bad Request"));
@@ -128,9 +128,9 @@ class CodesigningClientTest {
     Path artifact = tempDir.resolve("test.jar");
     Files.writeString(artifact, "fake-jar-content");
 
-    CodesigningException ex =
+    CodesignException ex =
         assertThrows(
-            CodesigningException.class,
+            CodesignException.class,
             () -> client.submit("proj", "policy", null, null, null, artifact));
     assertTrue(ex.responseBody().contains("Missing Location header"));
   }
@@ -176,8 +176,8 @@ class CodesigningClientTest {
     URI statusUrl = server.url("/test").uri();
     SigningRequest signingRequest = new SigningRequest(statusUrl);
 
-    CodesigningException ex =
-        assertThrows(CodesigningException.class, () -> client.getStatus(signingRequest));
+    CodesignException ex =
+        assertThrows(CodesignException.class, () -> client.getStatus(signingRequest));
     assertEquals(404, ex.httpStatus());
   }
 
@@ -206,7 +206,7 @@ class CodesigningClientTest {
     SigningRequestStatus status = new SigningRequestStatus("Completed", "Done", true, null, null);
 
     assertThrows(
-        CodesigningException.class,
+        CodesignException.class,
         () -> client.downloadSignedArtifact(status, tempDir.resolve("out.jar")));
   }
 
@@ -218,9 +218,9 @@ class CodesigningClientTest {
     SigningRequestStatus status =
         new SigningRequestStatus("Completed", "Done", true, signedLink, null);
 
-    CodesigningException ex =
+    CodesignException ex =
         assertThrows(
-            CodesigningException.class,
+            CodesignException.class,
             () -> client.downloadSignedArtifact(status, tempDir.resolve("out.jar")));
     assertEquals(500, ex.httpStatus());
   }
