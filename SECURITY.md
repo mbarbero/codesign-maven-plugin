@@ -10,7 +10,7 @@ If you think you have found a vulnerability in this repository, please report it
 
 Instead, report it using one of the following ways:
 
-* Report a [vulnerability](https://github.com/eclipse-csi/signpath-maven-plugin/security/advisories/new) via private vulnerability reporting on GitHub
+* Report a [vulnerability](https://github.com/eclipse-csi/codesigning-maven-plugin/security/advisories/new) via private vulnerability reporting on GitHub
 * Contact the [Eclipse Foundation Security Team](mailto:security@eclipse-foundation.org) via email
 * Create a [confidential issue](https://gitlab.eclipse.org/security/vulnerability-reports/-/issues/new?issuable_template=new_vulnerability) in the Eclipse Foundation Vulnerability Reporting Tracker
 

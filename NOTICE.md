@@ -1,4 +1,4 @@
-# Notices for Eclipse CSI SignPath Maven Plugin
+# Notices for Eclipse CSI Codesigning Maven Plugin
 
 This content is produced and maintained by the Eclipse Common Security
 Infrastructure (CSI) project.
@@ -28,7 +28,7 @@ SPDX-License-Identifier: EPL-2.0
 
 The project maintains the following source code repository:
 
-- https://github.com/eclipse-csi/signpath-maven-plugin
+- https://github.com/eclipse-csi/codesigning-maven-plugin
 
 ## Third-party Content
 

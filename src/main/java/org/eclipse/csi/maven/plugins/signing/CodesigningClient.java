@@ -29,7 +29,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /** HTTP client for all SignPath API operations: submit, poll status, and download. */
-public class SignPathClient implements AutoCloseable {
+public class CodesigningClient implements AutoCloseable {
 
   private static final Gson GSON = new GsonBuilder().create();
   private static final MediaType OCTET_STREAM = MediaType.get("application/octet-stream");
@@ -42,7 +42,7 @@ public class SignPathClient implements AutoCloseable {
   private final String apiToken;
 
   /**
-   * Configuration for the SignPath client.
+   * Configuration for the codesigning client.
    *
    * @param baseUrl the SignPath API base URL
    * @param organizationId the SignPath organization identifier
@@ -68,7 +68,7 @@ public class SignPathClient implements AutoCloseable {
    *
    * @param config the client configuration
    */
-  public SignPathClient(Config config) {
+  public CodesigningClient(Config config) {
     this.baseUrl = config.baseUrl();
     this.organizationId = config.organizationId();
     this.apiToken = config.apiToken();
@@ -86,7 +86,8 @@ public class SignPathClient implements AutoCloseable {
   }
 
   // Visible for testing
-  SignPathClient(OkHttpClient httpClient, String baseUrl, String organizationId, String apiToken) {
+  CodesigningClient(
+      OkHttpClient httpClient, String baseUrl, String organizationId, String apiToken) {
     this.httpClient = httpClient;
     this.baseUrl = baseUrl;
     this.organizationId = organizationId;
@@ -103,7 +104,7 @@ public class SignPathClient implements AutoCloseable {
    * @param parameters optional custom key/value parameters, may be {@code null}
    * @param artifactPath path to the artifact file to sign
    * @return a {@link SigningRequest} containing the status polling URL
-   * @throws SignPathException if the API returns a non-201 response
+   * @throws CodesigningException if the API returns a non-201 response
    * @throws IOException on transport-level failures
    */
   public SigningRequest submit(
@@ -113,7 +114,7 @@ public class SignPathClient implements AutoCloseable {
       String description,
       Map<String, String> parameters,
       Path artifactPath)
-      throws SignPathException, IOException {
+      throws CodesigningException, IOException {
     String url = baseUrl + "/v1/" + organizationId + "/SigningRequests";
 
     MultipartBody.Builder bodyBuilder =
@@ -147,11 +148,12 @@ public class SignPathClient implements AutoCloseable {
 
     try (Response response = httpClient.newCall(request).execute()) {
       if (response.code() != 201) {
-        throw new SignPathException(response.code(), readBody(response));
+        throw new CodesigningException(response.code(), readBody(response));
       }
       String location = response.header("Location");
       if (location == null) {
-        throw new SignPathException(response.code(), "Missing Location header in submit response");
+        throw new CodesigningException(
+            response.code(), "Missing Location header in submit response");
       }
       return new SigningRequest(URI.create(location));
     }
@@ -162,11 +164,11 @@ public class SignPathClient implements AutoCloseable {
    *
    * @param signingRequest the signing request to poll
    * @return the current {@link SigningRequestStatus}
-   * @throws SignPathException if the API returns an unsuccessful response
+   * @throws CodesigningException if the API returns an unsuccessful response
    * @throws IOException on transport-level failures
    */
   public SigningRequestStatus getStatus(SigningRequest signingRequest)
-      throws SignPathException, IOException {
+      throws CodesigningException, IOException {
     Request request =
         new Request.Builder()
             .url(signingRequest.statusUrl().toString())
@@ -176,7 +178,7 @@ public class SignPathClient implements AutoCloseable {
 
     try (Response response = httpClient.newCall(request).execute()) {
       if (!response.isSuccessful()) {
-        throw new SignPathException(response.code(), readBody(response));
+        throw new CodesigningException(response.code(), readBody(response));
       }
       String body = readBody(response);
       return GSON.fromJson(body, SigningRequestStatus.class);
@@ -188,14 +190,15 @@ public class SignPathClient implements AutoCloseable {
    *
    * @param status the final signing request status containing the artifact download link
    * @param outputPath the local path where the signed artifact will be written
-   * @throws SignPathException if no signed artifact link is available or the API returns an error
+   * @throws CodesigningException if no signed artifact link is available or the API returns an
+   *     error
    * @throws IOException on transport-level or I/O failures
    */
   public void downloadSignedArtifact(SigningRequestStatus status, Path outputPath)
-      throws SignPathException, IOException {
+      throws CodesigningException, IOException {
     URI signedArtifactLink = status.signedArtifactLink();
     if (signedArtifactLink == null) {
-      throw new SignPathException(-1, "No signed artifact link available");
+      throw new CodesigningException(-1, "No signed artifact link available");
     }
 
     Request request =
@@ -207,11 +210,11 @@ public class SignPathClient implements AutoCloseable {
 
     try (Response response = httpClient.newCall(request).execute()) {
       if (!response.isSuccessful()) {
-        throw new SignPathException(response.code(), readBody(response));
+        throw new CodesigningException(response.code(), readBody(response));
       }
       ResponseBody body = response.body();
       if (body == null) {
-        throw new SignPathException(response.code(), "Empty response body");
+        throw new CodesigningException(response.code(), "Empty response body");
       }
       try (OutputStream out = Files.newOutputStream(outputPath)) {
         body.byteStream().transferTo(out);
