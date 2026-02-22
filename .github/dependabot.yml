@@ -20,6 +20,7 @@ updates:
           - "org.jacoco:*"
           - "org.jreleaser:*"
           - "org.cyclonedx:*"
+          - "org.graalvm.buildtools:*"
       dependencies:
         patterns:
           - "*"

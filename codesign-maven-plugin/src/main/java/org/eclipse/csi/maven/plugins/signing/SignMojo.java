@@ -39,8 +39,8 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.eclipse.csi.codesign.CodesignClient;
 import org.eclipse.csi.codesign.CodesignException;
-import org.eclipse.csi.codesign.SigningRequest;
 import org.eclipse.csi.codesign.SigningRequestStatus;
+import org.eclipse.csi.codesign.SigningWorkflow;
 
 /**
  * Maven goal that signs build artifacts via the SignPath REST API.
@@ -496,13 +496,13 @@ public class SignMojo extends AbstractMojo {
       throws MojoExecutionException, MojoFailureException {
     getLog().info("Submitting for signing: " + filePath);
 
-    try {
-      SigningRequest signingRequest =
-          client.submit(
-              projectId, signingPolicy, artifactConfiguration, description, parameters, filePath);
-      getLog().info("Signing request submitted, polling status at: " + signingRequest.statusUrl());
+    SigningWorkflow workflow =
+        new SigningWorkflow(client, Duration.ofSeconds(pollInterval), msg -> getLog().info(msg));
 
-      SigningRequestStatus status = pollUntilFinal(client, signingRequest);
+    try {
+      SigningRequestStatus status =
+          workflow.submitAndWait(
+              projectId, signingPolicy, artifactConfiguration, description, parameters, filePath);
 
       if (!status.isCompleted()) {
         throw new MojoFailureException(
@@ -531,40 +531,6 @@ public class SignMojo extends AbstractMojo {
       throw new MojoExecutionException("SignPath API error while signing " + filePath, e);
     } catch (IOException e) {
       throw new MojoExecutionException("I/O error while signing " + filePath, e);
-    }
-  }
-
-  /**
-   * Polls SignPath until the request reaches a final state.
-   *
-   * @param client SignPath client
-   * @param signingRequest request to poll
-   * @return final request status
-   * @throws CodesignException on API-level errors
-   * @throws IOException when polling is interrupted or transport fails
-   */
-  private SigningRequestStatus pollUntilFinal(CodesignClient client, SigningRequest signingRequest)
-      throws CodesignException, IOException {
-    while (true) {
-      SigningRequestStatus status = client.getStatus(signingRequest);
-      getLog()
-          .info(
-              "Signing status: "
-                  + status.status()
-                  + " (workflow: "
-                  + status.workflowStatus()
-                  + ")");
-
-      if (status.isFinalStatus()) {
-        return status;
-      }
-
-      try {
-        Thread.sleep(Duration.ofSeconds(pollInterval).toMillis());
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new IOException("Polling interrupted", e);
-      }
     }
   }
 

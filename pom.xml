@@ -16,6 +16,7 @@
   <modules>
     <module>codesign-api</module>
     <module>codesign-maven-plugin</module>
+    <module>cli</module>
   </modules>
 
   <licenses>
@@ -54,6 +55,7 @@
 
     <maven.version>3.9.12</maven.version>
     <okhttp.version>5.3.2</okhttp.version>
+    <picocli.version>4.7.6</picocli.version>
   </properties>
 
   <dependencyManagement>
@@ -102,6 +104,11 @@
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-stdlib</artifactId>
         <version>2.3.10</version>
+      </dependency>
+      <dependency>
+        <groupId>info.picocli</groupId>
+        <artifactId>picocli</artifactId>
+        <version>${picocli.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -197,6 +204,16 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.8.12</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.graalvm.buildtools</groupId>
+          <artifactId>native-maven-plugin</artifactId>
+          <version>0.10.6</version>
         </plugin>
         <plugin>
           <groupId>org.cyclonedx</groupId>
@@ -310,7 +327,8 @@
                     <namespace>org.eclipse.csi</namespace>
                     <applyMavenCentralRules>true</applyMavenCentralRules>
                     <stagingRepositories>codesign-api/target/staging-deploy
-codesign-maven-plugin/target/staging-deploy</stagingRepositories>
+codesign-maven-plugin/target/staging-deploy
+cli/target/staging-deploy</stagingRepositories>
                   </sonatype>
                 </mavenCentral>
                 <nexus2>
@@ -322,7 +340,8 @@ codesign-maven-plugin/target/staging-deploy</stagingRepositories>
                     <closeRepository>true</closeRepository>
                     <releaseRepository>true</releaseRepository>
                     <stagingRepositories>codesign-api/target/staging-deploy
-codesign-maven-plugin/target/staging-deploy</stagingRepositories>
+codesign-maven-plugin/target/staging-deploy
+cli/target/staging-deploy</stagingRepositories>
                   </snapshot-deploy>
                 </nexus2>
               </maven>

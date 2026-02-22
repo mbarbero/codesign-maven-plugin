@@ -70,3 +70,74 @@ jobs:
             extra_args+=("-Djreleaser.dry.run=true")
           fi
           ./mvnw -B -ntp -DskipTests jreleaser:full-release "${extra_args[@]}"
+
+  native-binaries:
+    name: Native binary (${{ matrix.platform }})
+    needs: release
+    if: ${{ !inputs.dry-run }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-x86_64
+            binary: codesign
+          - os: ubuntu-24.04-arm
+            platform: linux-aarch64
+            binary: codesign
+          - os: macos-latest
+            platform: macos-aarch64
+            binary: codesign
+          - os: macos-13
+            platform: macos-x86_64
+            binary: codesign
+          - os: windows-latest
+            platform: windows-x86_64
+            binary: codesign.exe
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    environment: release
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@54b4f5a65c1a84b2fdfdc2078fe43df32819e4b1 # v1.4.5
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          native-image-job-reports: 'true'
+
+      - name: Build native binary
+        shell: bash
+        run: ./mvnw -B -ntp -Pnative -pl cli --also-make -DskipTests package
+
+      - name: Rename binary for release asset
+        id: rename
+        env:
+          MATRIX_BINARY: ${{ matrix.binary }}
+          MATRIX_PLATFORM: ${{ matrix.platform }}
+        shell: bash
+        run: |
+          src="cli/target/${MATRIX_BINARY}"
+          dst="codesign-${MATRIX_PLATFORM}"
+          if [[ "${MATRIX_PLATFORM}" == "windows-x86_64" ]]; then
+            dst="${dst}.exe"
+          fi
+          cp "$src" "$dst"
+          echo "asset=${dst}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload binary to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+          ASSET_NAME: ${{ steps.rename.outputs.asset }}
+        shell: bash
+        run: gh release upload "${TAG_NAME}" "${ASSET_NAME}" --clobber

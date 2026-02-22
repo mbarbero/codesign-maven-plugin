@@ -1,8 +1,31 @@
-# Eclipse CSI Codesign Maven Plugin
+# Eclipse CSI Codesign
 
-Maven plugin that signs artifacts via the [SignPath](https://about.signpath.io/) REST API.
+Tools for signing artifacts via the [SignPath](https://about.signpath.io/) REST API:
 
-## Installation
+- **Maven Plugin** (`codesign-maven-plugin`) — integrates signing into Maven builds
+- **CLI** (`codesign`) — standalone native binary for signing in any CI/CD pipeline
+
+## CLI — Quick Start
+
+Download the native binary for your platform from the
+[Releases](https://github.com/eclipse-csi/codesign-maven-plugin/releases) page and
+run:
+
+```bash
+codesign sign app.jar \
+  --organization-id <ORG_ID> \
+  --project-id <PROJECT_SLUG> \
+  --signing-policy <POLICY_SLUG> \
+  --output app-signed.jar
+```
+
+Set `CSI_CODESIGN_API_TOKEN` (or use `--api-token`) for authentication.
+
+See [`cli/README.md`](cli/README.md) for the full CLI reference.
+
+---
+
+## Maven Plugin — Installation
 
 Add the plugin to your Maven project:
 
@@ -182,7 +205,15 @@ The following situations log a warning and let the build continue successfully.
 ## Building
 
 ```shell
-mvn clean verify
+# Full build (Maven plugin + CLI JVM JAR, all tests)
+./mvnw clean verify
+
+# Build the CLI JVM fat JAR only
+./mvnw package -pl cli --also-make
+
+# Build a native CLI binary (requires GraalVM with native-image)
+./mvnw -Pnative package -pl cli --also-make -DskipTests
+# Output: cli/target/codesign  (or codesign.exe on Windows)
 ```
 
 To generate both SBOMs in one build (plugin dependencies + GitHub Actions),
