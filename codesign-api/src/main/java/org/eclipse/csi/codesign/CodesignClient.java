@@ -10,8 +10,8 @@
 
 package org.eclipse.csi.codesign;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -31,7 +31,6 @@ import okhttp3.ResponseBody;
 /** HTTP client for all SignPath API operations: submit, poll status, and download. */
 public class CodesignClient implements AutoCloseable {
 
-  private static final Gson GSON = new GsonBuilder().create();
   private static final MediaType OCTET_STREAM = MediaType.get("application/octet-stream");
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String BEARER_PREFIX = "Bearer ";
@@ -179,7 +178,13 @@ public class CodesignClient implements AutoCloseable {
         throw new CodesignException(response.code(), readBody(response));
       }
       String body = readBody(response);
-      return GSON.fromJson(body, SigningRequestStatus.class);
+      JsonObject statusJson = JsonParser.parseString(body).getAsJsonObject();
+      return new SigningRequestStatus(
+          getString(statusJson, "status"),
+          getString(statusJson, "workflowStatus"),
+          statusJson.has("isFinalStatus") && statusJson.get("isFinalStatus").getAsBoolean(),
+          getUri(statusJson, "signedArtifactLink"),
+          getUri(statusJson, "unsignedArtifactLink"));
     }
   }
 
@@ -229,5 +234,16 @@ public class CodesignClient implements AutoCloseable {
   private static String readBody(Response response) throws IOException {
     ResponseBody body = response.body();
     return body != null ? body.string() : "";
+  }
+
+  private static String getString(JsonObject jsonObject, String fieldName) {
+    return jsonObject.has(fieldName) && !jsonObject.get(fieldName).isJsonNull()
+        ? jsonObject.get(fieldName).getAsString()
+        : null;
+  }
+
+  private static URI getUri(JsonObject jsonObject, String fieldName) {
+    String value = getString(jsonObject, fieldName);
+    return value != null ? URI.create(value) : null;
   }
 }

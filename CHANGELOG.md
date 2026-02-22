@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Initial implementation
 * CI/release/codeql/zizmor workflows
+* New `cli` module with `codesign sign` command (picocli) and native-image build profile
+* CI workflow to build GraalVM native CLI binaries on Linux, macOS, and Windows
 
 ### Changed
 

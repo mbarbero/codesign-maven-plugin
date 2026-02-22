@@ -1,0 +1,36 @@
+name: CLI Native Binaries
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-cli:
+    name: Native CLI (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: '21'
+          cache: maven
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: true
+
+      - name: Build native CLI binary
+        run: ./mvnw -B -ntp -pl cli -am -P native -DskipTests native:compile-no-fork

@@ -1,6 +1,6 @@
-# Eclipse CSI Codesign Maven Plugin
+# Eclipse CSI Codesign Maven Plugin and CLI
 
-Maven plugin that signs artifacts via the [SignPath](https://about.signpath.io/) REST API.
+Maven plugin and CLI that sign artifacts via the [SignPath](https://about.signpath.io/) REST API.
 
 ## Installation
 
@@ -23,6 +23,26 @@ mvn org.eclipse.csi:codesign-maven-plugin:sign \
   -Dcsi.codesign.signingPolicy=<POLICY_SLUG> \
   -Dcsi.codesign.artifactConfiguration=<CONFIG_SLUG>
 ```
+
+## CLI Usage
+
+```shell
+codesign sign \
+  --organization-id <ORG_ID> \
+  --project-id <PROJECT_SLUG> \
+  --signing-policy <POLICY_SLUG> \
+  --artifact-configuration <CONFIG_SLUG> \
+  --api-token <TOKEN> \
+  --output-dir ./signed \
+  ./target/app.jar ./target/app.exe
+```
+
+`codesign sign` requires explicit output behavior:
+- Use `--output-dir` for one or more input files.
+- Use `--output <path>` for a single input file.
+- In-place replacement is only allowed with `--force-overwrite`.
+- Signed files are downloaded to a temporary file first and then moved into place
+  atomically when supported by the filesystem (fallback is a safe replace move).
 
 ## Embedded Project Example (Sign Binaries)
 
