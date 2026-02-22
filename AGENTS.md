@@ -26,7 +26,7 @@ A changelog should be kept following recommendations from [keepachangelog](https
 
 ## Architecture
 
-Single-package project: `org.eclipse.csi.maven.plugins.signing`
+Single-package project: `org.eclipse.csi.codesign.mojo`
 
 ### Core Components
 

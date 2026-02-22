@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.eclipse.csi.maven.plugins.signing;
+package org.eclipse.csi.codesign.mojo;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
@@ -26,7 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
  * remain package-private.
  */
 @AnalyzeClasses(
-    packages = "org.eclipse.csi.maven.plugins.signing",
+    packages = "org.eclipse.csi.codesign.mojo",
     importOptions = ImportOption.DoNotIncludeTests.class)
 class MavenPluginArchTest {
 
@@ -39,7 +39,7 @@ class MavenPluginArchTest {
   static final ArchRule onlyMojoClassesArePublic =
       classes()
           .that()
-          .resideInAPackage("org.eclipse.csi.maven.plugins.signing")
+          .resideInAPackage("org.eclipse.csi.codesign.mojo")
           .and()
           .areNotAnnotatedWith(Mojo.class)
           .should()
