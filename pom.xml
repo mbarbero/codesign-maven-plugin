@@ -501,7 +501,6 @@
                        step is needed. -->
                   <async>true</async>
                   <outputFile>${project.build.directory}/wiremock.log</outputFile>
-                  <redirectStderrToStdout>true</redirectStderrToStdout>
                   <arguments>
                     <argument>-jar</argument>
                     <argument>${project.build.directory}/wiremock-standalone.jar</argument>
