@@ -96,9 +96,9 @@ public class CodesignClient implements AutoCloseable {
   /**
    * Submits an artifact for signing.
    *
-   * @param projectSlug the SignPath project slug
-   * @param signingPolicySlug the signing policy slug
-   * @param artifactConfigurationSlug optional artifact configuration slug, may be {@code null}
+   * @param projectId the SignPath project slug
+   * @param signingPolicy the signing policy slug
+   * @param artifactConfiguration optional artifact configuration slug, may be {@code null}
    * @param description optional signing request description, may be {@code null}
    * @param parameters optional custom key/value parameters, may be {@code null}
    * @param artifactPath path to the artifact file to sign
@@ -107,9 +107,9 @@ public class CodesignClient implements AutoCloseable {
    * @throws IOException on transport-level failures
    */
   public SigningRequest submit(
-      String projectSlug,
-      String signingPolicySlug,
-      String artifactConfigurationSlug,
+      String projectId,
+      String signingPolicy,
+      String artifactConfiguration,
       String description,
       Map<String, String> parameters,
       Path artifactPath)
@@ -119,15 +119,15 @@ public class CodesignClient implements AutoCloseable {
     MultipartBody.Builder bodyBuilder =
         new MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("ProjectSlug", projectSlug)
-            .addFormDataPart("SigningPolicySlug", signingPolicySlug)
+            .addFormDataPart("ProjectSlug", projectId)
+            .addFormDataPart("SigningPolicySlug", signingPolicy)
             .addFormDataPart(
                 "Artifact",
                 artifactPath.getFileName().toString(),
                 RequestBody.create(artifactPath.toFile(), OCTET_STREAM));
 
-    if (artifactConfigurationSlug != null) {
-      bodyBuilder.addFormDataPart("ArtifactConfigurationSlug", artifactConfigurationSlug);
+    if (artifactConfiguration != null) {
+      bodyBuilder.addFormDataPart("ArtifactConfigurationSlug", artifactConfiguration);
     }
     if (description != null) {
       bodyBuilder.addFormDataPart("Description", description);

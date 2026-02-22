@@ -29,8 +29,8 @@
         </executions>
         <configuration>
           <organizationId>no-files-org</organizationId>
-          <projectSlug>test-project</projectSlug>
-          <signingPolicySlug>test-policy</signingPolicySlug>
+          <projectId>test-project</projectId>
+          <signingPolicy>test-policy</signingPolicy>
           <apiToken>test-token</apiToken>
           <baseUrl>http://localhost:@mockserver.port@/Api</baseUrl>
           <signProjectArtifact>false</signProjectArtifact>

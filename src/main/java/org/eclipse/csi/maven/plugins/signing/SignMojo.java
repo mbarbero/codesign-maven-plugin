@@ -90,26 +90,26 @@ public class SignMojo extends AbstractMojo {
   /**
    * SignPath project slug that owns the signing configuration.
    *
-   * <p>Required. Mapped to {@code -Dcsi.codesign.projectSlug}.
+   * <p>Required. Mapped to {@code -Dcsi.codesign.projectId}.
    */
-  @Parameter(property = "csi.codesign.projectSlug", required = true)
-  private String projectSlug;
+  @Parameter(property = "csi.codesign.projectId", required = true)
+  private String projectId;
 
   /**
    * SignPath signing policy slug used for submitted artifacts.
    *
-   * <p>Required. Mapped to {@code -Dcsi.codesign.signingPolicySlug}.
+   * <p>Required. Mapped to {@code -Dcsi.codesign.signingPolicy}.
    */
-  @Parameter(property = "csi.codesign.signingPolicySlug", required = true)
-  private String signingPolicySlug;
+  @Parameter(property = "csi.codesign.signingPolicy", required = true)
+  private String signingPolicy;
 
   /**
    * Optional SignPath artifact configuration slug.
    *
-   * <p>Mapped to {@code -Dcsi.codesign.artifactConfigurationSlug}.
+   * <p>Mapped to {@code -Dcsi.codesign.artifactConfiguration}.
    */
-  @Parameter(property = "csi.codesign.artifactConfigurationSlug")
-  private String artifactConfigurationSlug;
+  @Parameter(property = "csi.codesign.artifactConfiguration")
+  private String artifactConfiguration;
 
   /**
    * Optional signing request description shown in SignPath.
@@ -457,12 +457,7 @@ public class SignMojo extends AbstractMojo {
     try {
       SigningRequest signingRequest =
           client.submit(
-              projectSlug,
-              signingPolicySlug,
-              artifactConfigurationSlug,
-              description,
-              parameters,
-              filePath);
+              projectId, signingPolicy, artifactConfiguration, description, parameters, filePath);
       getLog().info("Signing request submitted, polling status at: " + signingRequest.statusUrl());
 
       SigningRequestStatus status = pollUntilFinal(client, signingRequest);

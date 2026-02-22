@@ -20,8 +20,8 @@ Add the plugin to your project's `pom.xml`:
           </goals>
           <configuration>
             <organizationId>${env.SIGNPATH_ORG_ID}</organizationId>
-            <projectSlug>my-project</projectSlug>
-            <signingPolicySlug>release-signing</signingPolicySlug>
+            <projectId>my-project</projectId>
+            <signingPolicy>release-signing</signingPolicy>
           </configuration>
         </execution>
       </executions>

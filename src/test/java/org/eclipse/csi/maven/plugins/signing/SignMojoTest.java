@@ -65,8 +65,8 @@ class SignMojoTest {
     SignMojo mojo = new SignMojo(null);
     setField(mojo, "organizationId", "test-org");
     setField(mojo, "apiToken", "test-token");
-    setField(mojo, "projectSlug", "my-project");
-    setField(mojo, "signingPolicySlug", "release");
+    setField(mojo, "projectId", "my-project");
+    setField(mojo, "signingPolicy", "release");
     setField(mojo, "baseUrl", server.url("/Api").toString());
     setField(mojo, "baseDirectory", tempDir.toString());
     setField(mojo, "pollInterval", 1);

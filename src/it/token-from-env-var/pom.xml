@@ -24,8 +24,8 @@
         </executions>
         <configuration>
           <organizationId>token-env-org</organizationId>
-          <projectSlug>test-project</projectSlug>
-          <signingPolicySlug>test-policy</signingPolicySlug>
+          <projectId>test-project</projectId>
+          <signingPolicy>test-policy</signingPolicy>
           <baseUrl>http://localhost:@mockserver.port@/Api</baseUrl>
           <signProjectArtifact>false</signProjectArtifact>
           <signAttachedArtifacts>false</signAttachedArtifacts>

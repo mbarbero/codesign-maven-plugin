@@ -19,9 +19,9 @@ Add the plugin to your Maven project:
 ```shell
 mvn org.eclipse.csi:codesign-maven-plugin:sign \
   -Dcsi.codesign.organizationId=<ORG_ID> \
-  -Dcsi.codesign.projectSlug=<PROJECT_SLUG> \
-  -Dcsi.codesign.signingPolicySlug=<POLICY_SLUG> \
-  -Dcsi.codesign.artifactConfigurationSlug=<CONFIG_SLUG>
+  -Dcsi.codesign.projectId=<PROJECT_SLUG> \
+  -Dcsi.codesign.signingPolicy=<POLICY_SLUG> \
+  -Dcsi.codesign.artifactConfiguration=<CONFIG_SLUG>
 ```
 
 ## Embedded Project Example (Sign Binaries)
@@ -50,9 +50,9 @@ This example signs `.jar`, `.exe`, and `.dmg` files produced in
           <configuration>
             <!-- Required SignPath coordinates -->
             <organizationId>${env.SIGNPATH_ORG_ID}</organizationId>
-            <projectSlug>my-product</projectSlug>
-            <signingPolicySlug>release-signing</signingPolicySlug>
-            <artifactConfigurationSlug>default-binary-config</artifactConfigurationSlug>
+            <projectId>my-product</projectId>
+            <signingPolicy>release-signing</signingPolicy>
+            <artifactConfiguration>default-binary-config</artifactConfiguration>
 
             <!-- Optional metadata passed to SignPath -->
             <description>${project.artifactId} ${project.version}</description>

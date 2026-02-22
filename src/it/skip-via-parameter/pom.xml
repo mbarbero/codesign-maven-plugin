@@ -25,8 +25,8 @@
         <configuration>
           <skip>true</skip>
           <organizationId>skip-org</organizationId>
-          <projectSlug>skip-project</projectSlug>
-          <signingPolicySlug>skip-policy</signingPolicySlug>
+          <projectId>skip-project</projectId>
+          <signingPolicy>skip-policy</signingPolicy>
           <signProjectArtifact>false</signProjectArtifact>
           <signAttachedArtifacts>false</signAttachedArtifacts>
         </configuration>

@@ -30,8 +30,8 @@
             </goals>
             <configuration>
               <organizationId>multi-exec-org</organizationId>
-              <projectSlug>test-project</projectSlug>
-              <signingPolicySlug>exe-policy</signingPolicySlug>
+              <projectId>test-project</projectId>
+              <signingPolicy>exe-policy</signingPolicy>
               <apiToken>test-token</apiToken>
               <baseUrl>http://localhost:@mockserver.port@/Api</baseUrl>
               <signProjectArtifact>false</signProjectArtifact>
@@ -50,8 +50,8 @@
             </goals>
             <configuration>
               <organizationId>multi-exec-org</organizationId>
-              <projectSlug>test-project</projectSlug>
-              <signingPolicySlug>jar-policy</signingPolicySlug>
+              <projectId>test-project</projectId>
+              <signingPolicy>jar-policy</signingPolicy>
               <apiToken>test-token</apiToken>
               <baseUrl>http://localhost:@mockserver.port@/Api</baseUrl>
               <signProjectArtifact>true</signProjectArtifact>
