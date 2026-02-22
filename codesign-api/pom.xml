@@ -16,6 +16,31 @@
   <name>CSI Codesign API</name>
   <description>Java client library for the SignPath REST API.</description>
 
+  <profiles>
+    <profile>
+      <id>generate-sbom</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-project-sbom</id>
+                <!-- prepare-package guarantees bom.json exists before the package
+                     phase runs cdxgen and the cyclonedx merge (inherited from parent). -->
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>makeBom</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>

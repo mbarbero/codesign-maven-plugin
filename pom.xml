@@ -306,19 +306,27 @@ codesign-maven-plugin/target/staging-deploy</stagingRepositories>
       <id>generate-sbom</id>
       <build>
         <plugins>
+          <!-- Aggregate BOM for the parent (all child modules combined).
+               Not inherited — leaf modules use makeBom in their own profile. -->
           <plugin>
             <groupId>org.cyclonedx</groupId>
             <artifactId>cyclonedx-maven-plugin</artifactId>
+            <inherited>false</inherited>
             <executions>
               <execution>
                 <id>generate-project-sbom</id>
-                <phase>package</phase>
+                <!-- prepare-package guarantees bom.json exists before the package
+                     phase runs cdxgen and the cyclonedx merge. -->
+                <phase>prepare-package</phase>
                 <goals>
-                  <goal>makeBom</goal>
+                  <goal>makeAggregateBom</goal>
                 </goals>
               </execution>
             </executions>
           </plugin>
+          <!-- cdxgen (GitHub Actions SBOM) + cyclonedx merge run in every module.
+               workingDirectory points at the repo root so cdxgen always finds
+               .github/workflows/ regardless of which module is being built. -->
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
@@ -330,7 +338,7 @@ codesign-maven-plugin/target/staging-deploy</stagingRepositories>
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <workingDirectory>${project.basedir}</workingDirectory>
+                  <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
                   <executable>cdxgen</executable>
                   <arguments>
                     <argument>-t</argument>
