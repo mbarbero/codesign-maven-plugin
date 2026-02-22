@@ -211,20 +211,19 @@ class SignCommandTest {
     // With --output-dir, multiple files are valid. It will fail later (no token etc.) but
     // the validation error must NOT mention "multiple input files require --output-dir".
     StringWriter errOut = new StringWriter();
-    int exit =
-        new CommandLine(new CodesignCli())
-            .setOut(new PrintWriter(new StringWriter()))
-            .setErr(new PrintWriter(errOut))
-            .setExecutionExceptionHandler(new PrintExceptionMessageHandler())
-            .execute(
-                "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "test-token",
-                "--output-dir", tempDir.resolve("out").toString(),
-                f1.toString(),
-                f2.toString());
+    new CommandLine(new CodesignCli())
+        .setOut(new PrintWriter(new StringWriter()))
+        .setErr(new PrintWriter(errOut))
+        .setExecutionExceptionHandler(new PrintExceptionMessageHandler())
+        .execute(
+            "sign",
+            "--organization-id", "org",
+            "--project-id", "proj",
+            "--signing-policy", "policy",
+            "--api-token", "test-token",
+            "--output-dir", tempDir.resolve("out").toString(),
+            f1.toString(),
+            f2.toString());
     // Will fail (no real server), but NOT due to output-option validation
     String err = errOut.toString();
     assertFalse(
