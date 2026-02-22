@@ -55,6 +55,24 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -99,6 +117,11 @@
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
+      <properties>
+        <!-- Default to empty so the invoker gets a no-op when JaCoCo is skipped
+             (e.g. -Djacoco.skip=true). prepare-agent-integration overrides this. -->
+        <invoker.mavenOpts/>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -130,7 +153,12 @@
             <executions>
               <execution>
                 <id>download-wiremock</id>
-                <phase>pre-integration-test</phase>
+                <!-- Same reason as reserve-wiremock-port: when generate-sbom
+                     is also active, the merged effective POM can reorder
+                     maven-dependency-plugin relative to maven-antrun-plugin
+                     within pre-integration-test. Binding here guarantees the
+                     jar is on disk before start-wiremock runs. -->
+                <phase>process-test-resources</phase>
                 <goals>
                   <goal>copy</goal>
                 </goals>
@@ -155,7 +183,13 @@
             <executions>
               <execution>
                 <id>start-wiremock</id>
-                <phase>pre-integration-test</phase>
+                <!-- process-test-classes rather than pre-integration-test for
+                     the same profile-merge ordering reason as reserve-wiremock-port
+                     and download-wiremock: exec-maven-plugin is also declared in
+                     the generate-sbom profile and can land at an unexpected
+                     position within pre-integration-test. Using an earlier phase
+                     that has no competing exec executions avoids this entirely. -->
+                <phase>process-test-classes</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
@@ -208,6 +242,35 @@
             </executions>
           </plugin>
           <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>prepare-agent-integration</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>prepare-agent-integration</goal>
+                </goals>
+                <configuration>
+                  <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                  <!-- Stored in this property so maven-invoker-plugin can pass it
+                       as MAVEN_OPTS to each forked IT Maven process. -->
+                  <propertyName>invoker.mavenOpts</propertyName>
+                </configuration>
+              </execution>
+              <execution>
+                <id>report-integration</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>report-integration</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-invoker-plugin</artifactId>
             <configuration>
@@ -222,6 +285,9 @@
               <goals>
                 <goal>verify</goal>
               </goals>
+              <!-- Pass the JaCoCo agent to each forked Maven IT process so
+                   plugin-module classes are instrumented during IT runs. -->
+              <mavenOpts>${invoker.mavenOpts}</mavenOpts>
               <environmentVariables>
                 <CSI_CODESIGN_API_TOKEN>my-env-token</CSI_CODESIGN_API_TOKEN>
               </environmentVariables>

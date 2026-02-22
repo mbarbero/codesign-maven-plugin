@@ -17,6 +17,7 @@ updates:
         patterns:
           - "org.apache.maven.plugins:*"
           - "org.codehaus.mojo:*"
+          - "org.jacoco:*"
           - "org.jreleaser:*"
           - "org.cyclonedx:*"
       dependencies:
