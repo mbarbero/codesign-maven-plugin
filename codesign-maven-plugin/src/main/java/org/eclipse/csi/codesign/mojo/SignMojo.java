@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.eclipse.csi.maven.plugins.signing;
+package org.eclipse.csi.codesign.mojo;
 
 import java.io.File;
 import java.io.IOException;

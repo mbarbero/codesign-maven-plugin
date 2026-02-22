@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.eclipse.csi.maven.plugins.signing;
+package org.eclipse.csi.codesign.mojo;
 
 /**
  * Tri-state enum controlling whether the Maven project's main artifact is included in signing.
