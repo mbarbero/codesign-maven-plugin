@@ -8,6 +8,10 @@ Verifies:
 3. Every plugin groupId in <pluginManagement> is covered by the 'maven-plugins' dependabot group.
 4. Every pattern in the 'maven-plugins' dependabot group covers at least one plugin groupId
    in <pluginManagement> (no stale patterns).
+5. No child POM redeclares a <pluginManagement> or <dependencyManagement> entry that is already
+   in the parent POM (redundant).
+6. No <pluginManagement> or <dependencyManagement> entry appears in two or more child POMs
+   without also being in the parent (should be hoisted to the parent).
 
 In a multi-module project, checks are performed on the root POM plus all submodule POMs.
 """
@@ -74,6 +78,24 @@ def artifact_coords(element):
 
 # Keep the old name as an alias used below
 plugin_coords = artifact_coords
+
+
+def pm_coords(root):
+    """Return the set of (groupId, artifactId) tuples for all plugins in <pluginManagement>."""
+    result = set()
+    for pm in root.iter(f"{{{NS}}}pluginManagement"):
+        for p in pm.iter(f"{{{NS}}}plugin"):
+            result.add(artifact_coords(p))
+    return result
+
+
+def dm_coords(root):
+    """Return the set of (groupId, artifactId) tuples for all deps in <dependencyManagement>."""
+    result = set()
+    for dm in root.iter(f"{{{NS}}}dependencyManagement"):
+        for d in dm.iter(f"{{{NS}}}dependency"):
+            result.add(artifact_coords(d))
+    return result
 
 
 def extract_maven_plugins_patterns(text):
@@ -156,8 +178,12 @@ def main():
     poms = find_poms()
     dependabot_text = DEPENDABOT.read_text()
 
-    # Collect all <pluginManagement> groupIds across all POMs
+    # Collect all <pluginManagement> groupIds across all POMs (for dependabot checks)
     all_pm_group_ids = set()
+
+    # Per-POM pluginManagement and dependencyManagement coords, for cross-POM checks
+    pom_pm: dict[Path, set[tuple]] = {}
+    pom_dm: dict[Path, set[tuple]] = {}
 
     for pom_path in poms:
         root = ET.parse(pom_path).getroot()
@@ -198,6 +224,10 @@ def main():
             if gid is not None and gid.text:
                 all_pm_group_ids.add(gid.text.strip())
 
+        # --- Collect per-POM pluginManagement / dependencyManagement coords ---
+        pom_pm[pom_path] = pm_coords(root)
+        pom_dm[pom_path] = dm_coords(root)
+
     # --- Extract dependabot maven-plugins patterns ---
     patterns = extract_maven_plugins_patterns(dependabot_text)
     if not patterns:
@@ -219,6 +249,48 @@ def main():
                 errors.append(
                     f"dependabot.yml: pattern '{pattern}' in the 'maven-plugins' group"
                     " does not match any plugin groupId in <pluginManagement>"
+                )
+
+    # --- Checks 5 & 6: child pluginManagement / dependencyManagement redundancy ---
+    child_poms = [p for p in poms if p != ROOT_POM]
+    if child_poms:
+        root_pm = pom_pm[ROOT_POM]
+        root_dm = pom_dm[ROOT_POM]
+
+        # Check 5: child redeclares something already managed by parent
+        for pom_path in child_poms:
+            for g, a in sorted(pom_pm[pom_path] & root_pm):
+                errors.append(
+                    f"{pom_path}: {g}:{a} is declared in <pluginManagement> but is"
+                    " already managed by the parent POM — remove the child declaration"
+                )
+            for g, a in sorted(pom_dm[pom_path] & root_dm):
+                errors.append(
+                    f"{pom_path}: {g}:{a} is declared in <dependencyManagement> but is"
+                    " already managed by the parent POM — remove the child declaration"
+                )
+
+        # Check 6: same entry in pluginManagement/dependencyManagement of 2+ child POMs
+        # (not yet in parent — those are caught by check 5 and should already be there)
+        pm_child_owners: dict[tuple, list[Path]] = {}
+        dm_child_owners: dict[tuple, list[Path]] = {}
+        for pom_path in child_poms:
+            for coords in pom_pm[pom_path] - root_pm:
+                pm_child_owners.setdefault(coords, []).append(pom_path)
+            for coords in pom_dm[pom_path] - root_dm:
+                dm_child_owners.setdefault(coords, []).append(pom_path)
+
+        for (g, a), owners in sorted(pm_child_owners.items()):
+            if len(owners) > 1:
+                errors.append(
+                    f"{g}:{a} is declared in <pluginManagement> of multiple child POMs"
+                    f" ({', '.join(str(p) for p in owners)}) — move it to the parent POM"
+                )
+        for (g, a), owners in sorted(dm_child_owners.items()):
+            if len(owners) > 1:
+                errors.append(
+                    f"{g}:{a} is declared in <dependencyManagement> of multiple child POMs"
+                    f" ({', '.join(str(p) for p in owners)}) — move it to the parent POM"
                 )
 
     if errors:
