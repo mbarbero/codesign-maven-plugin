@@ -8,6 +8,8 @@ Verifies:
 3. Every plugin groupId in <pluginManagement> is covered by the 'maven-plugins' dependabot group.
 4. Every pattern in the 'maven-plugins' dependabot group covers at least one plugin groupId
    in <pluginManagement> (no stale patterns).
+
+In a multi-module project, checks are performed on the root POM plus all submodule POMs.
 """
 
 import fnmatch
@@ -17,8 +19,20 @@ import defusedxml.ElementTree as ET
 from pathlib import Path
 
 NS = "http://maven.apache.org/POM/4.0.0"
-POM = Path("pom.xml")
+ROOT_POM = Path("pom.xml")
 DEPENDABOT = Path(".github/dependabot.yml")
+
+
+def find_poms():
+    """Return the root POM and all submodule POMs."""
+    poms = [ROOT_POM]
+    root = ET.parse(ROOT_POM).getroot()
+    for module in root.iter(f"{{{NS}}}module"):
+        if module.text:
+            submodule_pom = Path(module.text.strip()) / "pom.xml"
+            if submodule_pom.exists():
+                poms.append(submodule_pom)
+    return poms
 
 
 def pm_plugin_ids(root):
@@ -139,44 +153,50 @@ def covers_group_id(pattern, group_id):
 def main():
     errors = []
 
-    root = ET.parse(POM).getroot()
+    poms = find_poms()
     dependabot_text = DEPENDABOT.read_text()
 
-    # --- Check 1: no inline <version> outside <pluginManagement> ---
-    pm_ids = pm_plugin_ids(root)
-    for plugin in root.iter(f"{{{NS}}}plugin"):
-        if id(plugin) in pm_ids:
-            continue
-        version = plugin.find(f"{{{NS}}}version")
-        if version is not None and version.text:
-            g, a = plugin_coords(plugin)
-            errors.append(
-                f"pom.xml: {g}:{a} has <version>{version.text.strip()}</version>"
-                " defined outside <pluginManagement>"
-            )
+    # Collect all <pluginManagement> groupIds across all POMs
+    all_pm_group_ids = set()
 
-    # --- Check 2: no inline <version> outside <dependencyManagement> ---
-    dm_ids = dm_dependency_ids(root)
-    plugin_dep_ids = plugin_dependency_ids(root)
-    for dep in root.iter(f"{{{NS}}}dependency"):
-        if id(dep) in dm_ids or id(dep) in plugin_dep_ids:
-            continue
-        version = dep.find(f"{{{NS}}}version")
-        if version is not None and version.text:
-            g, a = artifact_coords(dep)
-            errors.append(
-                f"pom.xml: {g}:{a} has <version>{version.text.strip()}</version>"
-                " defined outside <dependencyManagement>"
-            )
+    for pom_path in poms:
+        root = ET.parse(pom_path).getroot()
+        pom_label = str(pom_path)
 
-    # --- Collect groupIds declared in <pluginManagement> ---
-    pm_group_ids = set()
-    for plugin in root.iter(f"{{{NS}}}plugin"):
-        if id(plugin) not in pm_ids:
-            continue
-        gid = plugin.find(f"{{{NS}}}groupId")
-        if gid is not None and gid.text:
-            pm_group_ids.add(gid.text.strip())
+        # --- Check 1: no inline <version> outside <pluginManagement> ---
+        pm_ids = pm_plugin_ids(root)
+        for plugin in root.iter(f"{{{NS}}}plugin"):
+            if id(plugin) in pm_ids:
+                continue
+            version = plugin.find(f"{{{NS}}}version")
+            if version is not None and version.text:
+                g, a = plugin_coords(plugin)
+                errors.append(
+                    f"{pom_label}: {g}:{a} has <version>{version.text.strip()}</version>"
+                    " defined outside <pluginManagement>"
+                )
+
+        # --- Check 2: no inline <version> outside <dependencyManagement> ---
+        dm_ids = dm_dependency_ids(root)
+        plugin_dep_ids = plugin_dependency_ids(root)
+        for dep in root.iter(f"{{{NS}}}dependency"):
+            if id(dep) in dm_ids or id(dep) in plugin_dep_ids:
+                continue
+            version = dep.find(f"{{{NS}}}version")
+            if version is not None and version.text:
+                g, a = artifact_coords(dep)
+                errors.append(
+                    f"{pom_label}: {g}:{a} has <version>{version.text.strip()}</version>"
+                    " defined outside <dependencyManagement>"
+                )
+
+        # --- Collect groupIds declared in <pluginManagement> ---
+        for plugin in root.iter(f"{{{NS}}}plugin"):
+            if id(plugin) not in pm_ids:
+                continue
+            gid = plugin.find(f"{{{NS}}}groupId")
+            if gid is not None and gid.text:
+                all_pm_group_ids.add(gid.text.strip())
 
     # --- Extract dependabot maven-plugins patterns ---
     patterns = extract_maven_plugins_patterns(dependabot_text)
@@ -185,17 +205,17 @@ def main():
             "dependabot.yml: could not find patterns for the 'maven-plugins' group"
         )
     else:
-        # --- Check 2: every <pluginManagement> groupId is covered ---
-        for gid in sorted(pm_group_ids):
+        # --- Check 3: every <pluginManagement> groupId is covered ---
+        for gid in sorted(all_pm_group_ids):
             if not any(covers_group_id(p, gid) for p in patterns):
                 errors.append(
                     f"dependabot.yml: plugin groupId '{gid}' from <pluginManagement>"
                     " is not covered by any pattern in the 'maven-plugins' group"
                 )
 
-        # --- Check 3: no stale patterns ---
+        # --- Check 4: no stale patterns ---
         for pattern in patterns:
-            if not any(covers_group_id(pattern, gid) for gid in pm_group_ids):
+            if not any(covers_group_id(pattern, gid) for gid in all_pm_group_ids):
                 errors.append(
                     f"dependabot.yml: pattern '{pattern}' in the 'maven-plugins' group"
                     " does not match any plugin groupId in <pluginManagement>"

@@ -5,13 +5,18 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.eclipse.csi</groupId>
-  <artifactId>codesign-maven-plugin</artifactId>
+  <artifactId>codesign-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <packaging>maven-plugin</packaging>
+  <packaging>pom</packaging>
 
-  <name>CSI Codesign Maven Plugin</name>
-  <description>Maven plugin that signs artifacts via the SignPath REST API.</description>
+  <name>CSI Codesign Parent</name>
+  <description>Parent POM for the CSI Codesign project.</description>
   <url>https://github.com/eclipse-csi/codesign-maven-plugin</url>
+
+  <modules>
+    <module>codesign-api</module>
+    <module>codesign-maven-plugin</module>
+  </modules>
 
   <licenses>
     <license>
@@ -54,6 +59,11 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.eclipse.csi</groupId>
+        <artifactId>codesign-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-plugin-api</artifactId>
         <version>${maven.version}</version>
@@ -95,43 +105,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugin-tools</groupId>
-      <artifactId>maven-plugin-annotations</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp-jvm</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>mockwebserver</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 
   <build>
     <pluginManagement>
@@ -239,10 +212,6 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
       <plugin>
@@ -271,6 +240,10 @@
                 <requireReleaseDeps>
                   <message>SNAPSHOT dependencies are not allowed.</message>
                   <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>org.eclipse.csi:codesign-parent</exclude>
+                    <exclude>org.eclipse.csi:codesign-api</exclude>
+                  </excludes>
                 </requireReleaseDeps>
               </rules>
             </configuration>
@@ -304,7 +277,8 @@
                     <url>https://central.sonatype.com/api/v1/publisher</url>
                     <namespace>org.eclipse.csi</namespace>
                     <applyMavenCentralRules>true</applyMavenCentralRules>
-                    <stagingRepositories>target/staging-deploy</stagingRepositories>
+                    <stagingRepositories>codesign-api/target/staging-deploy
+codesign-maven-plugin/target/staging-deploy</stagingRepositories>
                   </sonatype>
                 </mavenCentral>
                 <nexus2>
@@ -315,7 +289,8 @@
                     <snapshotSupported>true</snapshotSupported>
                     <closeRepository>true</closeRepository>
                     <releaseRepository>true</releaseRepository>
-                    <stagingRepositories>target/staging-deploy</stagingRepositories>
+                    <stagingRepositories>codesign-api/target/staging-deploy
+codesign-maven-plugin/target/staging-deploy</stagingRepositories>
                   </snapshot-deploy>
                 </nexus2>
               </maven>
@@ -325,19 +300,6 @@
       </plugin>
     </plugins>
   </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-report-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </reporting>
 
   <profiles>
     <profile>
@@ -429,201 +391,12 @@
       </build>
     </profile>
     <profile>
-      <id>integration-tests</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>reserve-wiremock-port</id>
-                <!-- Use process-test-resources rather than pre-integration-test:
-                     exec-maven-plugin is also declared in the generate-sbom profile,
-                     and the merged effective POM can order exec before build-helper
-                     within the same phase, leaving ${mockserver.port} unset when
-                     WireMock starts. Binding to an earlier phase avoids this. -->
-                <phase>process-test-resources</phase>
-                <goals>
-                  <goal>reserve-network-port</goal>
-                </goals>
-                <configuration>
-                  <portNames>
-                    <portName>mockserver.port</portName>
-                  </portNames>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>download-wiremock</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>copy</goal>
-                </goals>
-                <configuration>
-                  <artifactItems>
-                    <artifactItem>
-                      <groupId>org.wiremock</groupId>
-                      <artifactId>wiremock-standalone</artifactId>
-                      <version>3.13.2</version>
-                      <type>jar</type>
-                      <destFileName>wiremock-standalone.jar</destFileName>
-                    </artifactItem>
-                  </artifactItems>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>start-wiremock</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>java</executable>
-                  <!-- async=true returns immediately; asyncDestroyOnShutdown=true
-                       (the default) registers a JVM shutdown hook that terminates
-                       WireMock automatically when Maven exits, so no explicit stop
-                       step is needed. -->
-                  <async>true</async>
-                  <outputFile>${project.build.directory}/wiremock.log</outputFile>
-                  <arguments>
-                    <argument>-jar</argument>
-                    <argument>${project.build.directory}/wiremock-standalone.jar</argument>
-                    <argument>--port</argument>
-                    <argument>${mockserver.port}</argument>
-                    <argument>--root-dir</argument>
-                    <argument>${project.basedir}/src/it/wiremock</argument>
-                    <argument>--disable-banner</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>wait-for-wiremock</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target>
-                    <!-- Poll the WireMock health endpoint every 500 ms for up to
-                         30 seconds. Uses only the JDK's java.net.URL internally,
-                         so no external tools (curl, wget, …) are required. -->
-                    <waitfor maxwait="30" maxwaitunit="second"
-                             checkevery="500" checkeveryunit="millisecond"
-                             timeoutproperty="wiremock.start.timeout">
-                      <http url="http://127.0.0.1:${mockserver.port}/__admin/health"/>
-                    </waitfor>
-                    <fail if="wiremock.start.timeout"
-                          message="WireMock did not become healthy within 30 s on port ${mockserver.port}"/>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-invoker-plugin</artifactId>
-            <configuration>
-              <projectsDirectory>src/it</projectsDirectory>
-              <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-              <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
-              <streamLogsOnFailures>true</streamLogsOnFailures>
-              <settingsFile>src/it/settings.xml</settingsFile>
-              <filterProperties>
-                <mockserver.port>${mockserver.port}</mockserver.port>
-              </filterProperties>
-              <goals>
-                <goal>verify</goal>
-              </goals>
-              <environmentVariables>
-                <CSI_CODESIGN_API_TOKEN>my-env-token</CSI_CODESIGN_API_TOKEN>
-              </environmentVariables>
-              <properties>
-                <csi.codesign.pollInterval>1</csi.codesign.pollInterval>
-                <csi.codesign.retryInterval>1</csi.codesign.retryInterval>
-              </properties>
-              <showErrors>true</showErrors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>install-plugin</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>install</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>run-its</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>release</id>
       <properties>
         <altDeploymentRepository>local::file:./target/staging-deploy</altDeploymentRepository>
       </properties>
       <build>
         <defaultGoal>deploy</defaultGoal>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <configuration>
-                  <attach>true</attach>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar-no-fork</goal>
-                </goals>
-                <configuration>
-                  <attach>true</attach>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
       </build>
     </profile>
   </profiles>

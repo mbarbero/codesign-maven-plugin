@@ -42,7 +42,7 @@ jobs:
           java-version: '21'
 
       - name: Build Maven site
-        run: ./mvnw -B -ntp -DskipTests package site
+        run: ./mvnw -B -ntp -DskipTests -pl codesign-maven-plugin --also-make package site
 
       # Check out the accumulated gh-pages content so we can overlay new files
       # and re-deploy the full site (native Pages has no keep_files equivalent).
@@ -67,7 +67,7 @@ jobs:
         run: |
           rm -rf target/gh-pages-store/snapshot
           mkdir -p target/gh-pages-store/snapshot
-          cp -r target/site/. target/gh-pages-store/snapshot/
+          cp -r codesign-maven-plugin/target/site/. target/gh-pages-store/snapshot/
           python3 -c "import xml.etree.ElementTree as ET; ns={'m':'http://maven.apache.org/POM/4.0.0'}; print(ET.parse('pom.xml').getroot().find('m:version',ns).text)" \
             > target/gh-pages-store/snapshot/.version
 
@@ -77,8 +77,8 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           rm -rf "target/gh-pages-store/${version}" target/gh-pages-store/latest
           mkdir -p "target/gh-pages-store/${version}" target/gh-pages-store/latest
-          cp -r target/site/. "target/gh-pages-store/${version}/"
-          cp -r target/site/. target/gh-pages-store/latest/
+          cp -r codesign-maven-plugin/target/site/. "target/gh-pages-store/${version}/"
+          cp -r codesign-maven-plugin/target/site/. target/gh-pages-store/latest/
           echo "$version" > "target/gh-pages-store/${version}/.version"
           echo "$version" > target/gh-pages-store/latest/.version
 
