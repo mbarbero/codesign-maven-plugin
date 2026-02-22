@@ -58,7 +58,7 @@ jobs:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ruff check .github/scripts --output-format=rdjson \
-            | reviewdog -f=ruff -name="ruff" -reporter=github-pr-review -filter-mode=added -fail-level=error
+            | reviewdog -f=rdjson -name="ruff" -reporter=github-pr-review -filter-mode=added -fail-level=error
 
   reviewdog-pre-commit:
     name: reviewdog (pre-commit)
@@ -83,12 +83,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run pre-commit (action)
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit
         id: precommit
         continue-on-error: true
-        uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
-        with:
-          extra-args: --all-files --show-diff-on-failure
+        env:
+          # poutine requires a system binary not available on ubuntu-latest;
+          # it has a dedicated job in ci-guardrails.yml.
+          # unit-tests runs Maven and is covered by the ci.yml workflow.
+          SKIP: poutine,unit-tests
+        run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
         if: ${{ always() }}
