@@ -74,8 +74,8 @@ class SignMojoTest {
     setField(mojo, "retryTimeout", 10);
     setField(mojo, "httpTimeout", 10);
     setField(mojo, "connectTimeout", 5);
-    setField(mojo, "signProjectArtifact", true);
-    setField(mojo, "signAttachedArtifacts", true);
+    setField(mojo, "signProjectArtifact", "false");
+    setField(mojo, "signAttachedArtifacts", false);
     setField(mojo, "skip", false);
     return mojo;
   }
@@ -146,7 +146,7 @@ class SignMojoTest {
   }
 
   @Test
-  void signsProjectAndAttachedArtifactsByDefault() throws Exception {
+  void signsProjectAndAttachedArtifactsWhenBothEnabled() throws Exception {
     Path mainArtifact = tempDir.resolve("main.jar");
     Path attachedArtifact = tempDir.resolve("attached.zip");
     Files.writeString(mainArtifact, "unsigned-main");
@@ -195,6 +195,8 @@ class SignMojoTest {
     SignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "project", createProjectWithArtifacts(mainArtifact, attachedArtifact));
+    setField(mojo, "signProjectArtifact", "true");
+    setField(mojo, "signAttachedArtifacts", true);
 
     mojo.execute();
 
@@ -213,7 +215,7 @@ class SignMojoTest {
     SignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "project", createProjectWithArtifacts(mainArtifact, attachedArtifact));
-    setField(mojo, "signProjectArtifact", false);
+    setField(mojo, "signProjectArtifact", "false");
     setField(mojo, "signAttachedArtifacts", false);
 
     mojo.execute();
@@ -221,6 +223,124 @@ class SignMojoTest {
     assertEquals("unsigned-main", Files.readString(mainArtifact));
     assertEquals("unsigned-attached", Files.readString(attachedArtifact));
     assertEquals(0, server.getRequestCount());
+  }
+
+  @Test
+  void autoSignsProjectArtifactForSignablePackagingTypes() throws Exception {
+    for (String packaging : new String[] {"jar", "war", "ear", "rar", "ejb", "maven-plugin"}) {
+      Path artifact = tempDir.resolve("main-" + packaging + ".bin");
+      Files.writeString(artifact, "unsigned");
+
+      String statusUrl = server.url("/Api/v1/test-org/SigningRequests/" + packaging).toString();
+      String signedUrl = server.url("/Api/signed-" + packaging).toString();
+      server.enqueue(new MockResponse().setResponseCode(201).setHeader("Location", statusUrl));
+      server.enqueue(
+          new MockResponse()
+              .setResponseCode(200)
+              .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+              .setBody(
+                  """
+                  {
+                    "status": "Completed",
+                    "workflowStatus": "Done",
+                    "isFinalStatus": true,
+                    "signedArtifactLink": "%s"
+                  }
+                  """
+                      .formatted(signedUrl)));
+      server.enqueue(new MockResponse().setResponseCode(200).setBody("signed-" + packaging));
+
+      SignMojo mojo = createMojo();
+      setField(mojo, "signProjectArtifact", "auto");
+      setField(mojo, "includes", new String[] {"*.nonexistent"});
+      setField(mojo, "project", createProjectWithPackaging(artifact, packaging));
+
+      mojo.execute();
+
+      assertEquals(
+          "signed-" + packaging,
+          Files.readString(artifact),
+          "Expected artifact to be signed for packaging: " + packaging);
+    }
+  }
+
+  @Test
+  void autoDoesNotSignProjectArtifactForPomPackaging() throws Exception {
+    Path artifact = tempDir.resolve("pom-artifact.pom");
+    Files.writeString(artifact, "<project/>");
+
+    SignMojo mojo = createMojo();
+    setField(mojo, "signProjectArtifact", "auto");
+    setField(mojo, "includes", new String[] {"*.nonexistent"});
+    setField(mojo, "project", createProjectWithPackaging(artifact, "pom"));
+
+    mojo.execute();
+
+    assertEquals("<project/>", Files.readString(artifact));
+    assertEquals(0, server.getRequestCount());
+  }
+
+  @Test
+  void doesNotSignAttachedArtifactsByDefault() throws Exception {
+    Path mainArtifact = tempDir.resolve("main.jar");
+    Path attachedArtifact = tempDir.resolve("attached.zip");
+    Files.writeString(mainArtifact, "unsigned-main");
+    Files.writeString(attachedArtifact, "unsigned-attached");
+
+    SignMojo mojo = createMojo();
+    setField(mojo, "signProjectArtifact", "false");
+    setField(mojo, "includes", new String[] {"*.nonexistent"});
+    setField(mojo, "project", createProjectWithArtifacts(mainArtifact, attachedArtifact));
+    // signAttachedArtifacts is false by default — no explicit override
+
+    mojo.execute();
+
+    assertEquals("unsigned-attached", Files.readString(attachedArtifact));
+    assertEquals(0, server.getRequestCount());
+  }
+
+  @Test
+  void signProjectArtifactValueIsCaseInsensitive() throws Exception {
+    Path artifact = tempDir.resolve("main.jar");
+    String statusUrl = server.url("/Api/v1/test-org/SigningRequests/ci").toString();
+    String signedUrl = server.url("/Api/signed-ci").toString();
+
+    for (String value : new String[] {"true", "TRUE", "True"}) {
+      Files.writeString(artifact, "unsigned");
+      server.enqueue(new MockResponse().setResponseCode(201).setHeader("Location", statusUrl));
+      server.enqueue(
+          new MockResponse()
+              .setResponseCode(200)
+              .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+              .setBody(
+                  """
+                  {
+                    "status": "Completed",
+                    "workflowStatus": "Done",
+                    "isFinalStatus": true,
+                    "signedArtifactLink": "%s"
+                  }
+                  """
+                      .formatted(signedUrl)));
+      server.enqueue(new MockResponse().setResponseCode(200).setBody("signed"));
+
+      SignMojo mojo = createMojo();
+      setField(mojo, "signProjectArtifact", value);
+      setField(mojo, "includes", new String[] {"*.nonexistent"});
+      setField(mojo, "project", createProjectWithPackaging(artifact, "jar"));
+      mojo.execute();
+      assertEquals("signed", Files.readString(artifact), "Failed for value: " + value);
+    }
+  }
+
+  @Test
+  void signProjectArtifactRejectsUnknownValue() throws Exception {
+    SignMojo mojo = createMojo();
+    setField(mojo, "signProjectArtifact", "maybe");
+    setField(mojo, "includes", new String[] {"*.nonexistent"});
+
+    MojoExecutionException ex = assertThrows(MojoExecutionException.class, () -> mojo.execute());
+    assertTrue(ex.getMessage().contains("maybe"), "Error should mention the bad value");
   }
 
   @Test
@@ -464,6 +584,26 @@ class SignMojoTest {
             new DefaultArtifactHandler("zip"));
     attached.setFile(attachedArtifact.toFile());
     project.addAttachedArtifact(attached);
+
+    return project;
+  }
+
+  private MavenProject createProjectWithPackaging(Path artifactFile, String packaging)
+      throws Exception {
+    MavenProject project = new MavenProject();
+    project.setPackaging(packaging);
+
+    DefaultArtifact artifact =
+        new DefaultArtifact(
+            "org.example",
+            "demo",
+            VersionRange.createFromVersion("1.0.0"),
+            "compile",
+            packaging,
+            null,
+            new DefaultArtifactHandler(packaging));
+    artifact.setFile(artifactFile.toFile());
+    project.setArtifact(artifact);
 
     return project;
   }

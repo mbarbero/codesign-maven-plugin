@@ -5,13 +5,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.eclipse.csi.it</groupId>
-  <artifactId>sign-project-artifact</artifactId>
+  <artifactId>auto-pom-packaging</artifactId>
   <version>1.0.0</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <!--
-    Verifies that signProjectArtifact=auto (the default) causes the Maven project artifact (JAR)
-    to be signed for jar packaging when no includes are configured.
+    Verifies that signProjectArtifact=AUTO (the default) does NOT sign the project
+    artifact when packaging is "pom". pom-packaged projects produce no signable
+    binary, so AUTO resolves to false and the plugin logs a warning instead of
+    making any API calls.
   -->
   <build>
     <plugins>
@@ -27,13 +29,11 @@
           </execution>
         </executions>
         <configuration>
-          <organizationId>sign-artifact-org</organizationId>
+          <organizationId>auto-pom-org</organizationId>
           <projectId>test-project</projectId>
           <signingPolicy>test-policy</signingPolicy>
           <apiToken>test-token</apiToken>
           <baseUrl>http://localhost:@mockserver.port@/Api</baseUrl>
-          <pollInterval>1</pollInterval>
-          <retryInterval>1</retryInterval>
         </configuration>
       </plugin>
     </plugins>

@@ -54,6 +54,13 @@ public class SignMojo extends AbstractMojo {
   private static final String CSI_CODESIGN_API_TOKEN = "CSI_CODESIGN_API_TOKEN";
   private static final String CSI_CODESIGN_SKIP_SIGNING = "CSI_CODESIGN_SKIP_SIGNING";
 
+  /**
+   * Maven native packaging types that produce a signable binary artifact. {@code pom} is
+   * intentionally absent: it has no binary output worth code-signing.
+   */
+  private static final Set<String> SIGNABLE_PACKAGING_TYPES =
+      Set.of("jar", "war", "ear", "rar", "ejb", "maven-plugin");
+
   private SettingsDecrypter settingsDecrypter;
 
   /**
@@ -160,19 +167,24 @@ public class SignMojo extends AbstractMojo {
   private String outputDirectory;
 
   /**
-   * Whether to include the Maven project's main artifact in signing.
+   * Controls whether the Maven project's main artifact is included in signing.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesign.signProjectArtifact}. Default is {@code true}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.signProjectArtifact}. Accepted values: {@code
+   * auto}, {@code true}, {@code false} (case-insensitive). Default is {@code auto}.
+   *
+   * <p>When {@code auto}, signing is enabled for packaging types that produce signable binary
+   * artifacts ({@code jar}, {@code war}, {@code ear}, {@code rar}, {@code ejb}, {@code
+   * maven-plugin}) and disabled for {@code pom} packaging and any other unrecognised type.
    */
-  @Parameter(property = "csi.codesign.signProjectArtifact", defaultValue = "true")
-  private boolean signProjectArtifact;
+  @Parameter(property = "csi.codesign.signProjectArtifact", defaultValue = "auto")
+  private String signProjectArtifact;
 
   /**
    * Whether to include Maven attached artifacts in signing.
    *
-   * <p>Optional. Mapped to {@code -Dcsi.codesign.signAttachedArtifacts}. Default is {@code true}.
+   * <p>Optional. Mapped to {@code -Dcsi.codesign.signAttachedArtifacts}. Default is {@code false}.
    */
-  @Parameter(property = "csi.codesign.signAttachedArtifacts", defaultValue = "true")
+  @Parameter(property = "csi.codesign.signAttachedArtifacts", defaultValue = "false")
   private boolean signAttachedArtifacts;
 
   /**
@@ -311,7 +323,7 @@ public class SignMojo extends AbstractMojo {
       files.add(basePath.resolve(relativePath).toAbsolutePath().normalize());
     }
 
-    if (signProjectArtifact && project != null && project.getArtifact() != null) {
+    if (resolveSignProjectArtifact() && project != null && project.getArtifact() != null) {
       addArtifactFile(files, project.getArtifact().getFile(), "project artifact");
     }
 
@@ -322,6 +334,32 @@ public class SignMojo extends AbstractMojo {
     }
 
     return new ArrayList<>(files);
+  }
+
+  /**
+   * Resolves the effective value of {@link #signProjectArtifact}.
+   *
+   * <p>When {@code auto}, returns {@code true} only when the project's packaging is one of the
+   * Maven native types that produce a signable binary artifact.
+   *
+   * @return {@code true} when the project artifact should be included in signing
+   * @throws MojoExecutionException if the configured value is not a recognised token
+   */
+  private boolean resolveSignProjectArtifact() throws MojoExecutionException {
+    SignProjectArtifact mode;
+    try {
+      mode = SignProjectArtifact.valueOf(signProjectArtifact.trim().toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new MojoExecutionException(
+          "Invalid signProjectArtifact value: '"
+              + signProjectArtifact
+              + "'. Expected one of: auto, true, false");
+    }
+    return switch (mode) {
+      case TRUE -> true;
+      case FALSE -> false;
+      case AUTO -> project != null && SIGNABLE_PACKAGING_TYPES.contains(project.getPackaging());
+    };
   }
 
   private void addArtifactFile(Set<Path> files, File artifactFile, String artifactType) {
