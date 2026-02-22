@@ -29,14 +29,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class SignPathClientTest {
+class CodesigningClientTest {
 
   private static final String API_TOKEN = "test-api-token";
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String BEARER_TOKEN = "Bearer " + API_TOKEN;
 
   private MockWebServer server;
-  private SignPathClient client;
+  private CodesigningClient client;
 
   @TempDir Path tempDir;
 
@@ -47,7 +47,7 @@ class SignPathClientTest {
 
     OkHttpClient httpClient = new OkHttpClient();
     client =
-        new SignPathClient(httpClient, server.url("/Api").toString(), "test-org-id", API_TOKEN);
+        new CodesigningClient(httpClient, server.url("/Api").toString(), "test-org-id", API_TOKEN);
   }
 
   @AfterEach
@@ -113,9 +113,9 @@ class SignPathClientTest {
     Path artifact = tempDir.resolve("test.jar");
     Files.writeString(artifact, "fake-jar-content");
 
-    SignPathException ex =
+    CodesigningException ex =
         assertThrows(
-            SignPathException.class,
+            CodesigningException.class,
             () -> client.submit("proj", "policy", null, null, null, artifact));
     assertEquals(400, ex.httpStatus());
     assertTrue(ex.responseBody().contains("Bad Request"));
@@ -128,9 +128,9 @@ class SignPathClientTest {
     Path artifact = tempDir.resolve("test.jar");
     Files.writeString(artifact, "fake-jar-content");
 
-    SignPathException ex =
+    CodesigningException ex =
         assertThrows(
-            SignPathException.class,
+            CodesigningException.class,
             () -> client.submit("proj", "policy", null, null, null, artifact));
     assertTrue(ex.responseBody().contains("Missing Location header"));
   }
@@ -176,8 +176,8 @@ class SignPathClientTest {
     URI statusUrl = server.url("/test").uri();
     SigningRequest signingRequest = new SigningRequest(statusUrl);
 
-    SignPathException ex =
-        assertThrows(SignPathException.class, () -> client.getStatus(signingRequest));
+    CodesigningException ex =
+        assertThrows(CodesigningException.class, () -> client.getStatus(signingRequest));
     assertEquals(404, ex.httpStatus());
   }
 
@@ -206,7 +206,7 @@ class SignPathClientTest {
     SigningRequestStatus status = new SigningRequestStatus("Completed", "Done", true, null, null);
 
     assertThrows(
-        SignPathException.class,
+        CodesigningException.class,
         () -> client.downloadSignedArtifact(status, tempDir.resolve("out.jar")));
   }
 
@@ -218,9 +218,9 @@ class SignPathClientTest {
     SigningRequestStatus status =
         new SigningRequestStatus("Completed", "Done", true, signedLink, null);
 
-    SignPathException ex =
+    CodesigningException ex =
         assertThrows(
-            SignPathException.class,
+            CodesigningException.class,
             () -> client.downloadSignedArtifact(status, tempDir.resolve("out.jar")));
     assertEquals(500, ex.httpStatus());
   }

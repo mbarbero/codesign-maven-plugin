@@ -20,7 +20,7 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.csi</groupId>
-        <artifactId>signpath-maven-plugin</artifactId>
+        <artifactId>codesigning-maven-plugin</artifactId>
         <version>@project.version@</version>
         <executions>
           <execution>

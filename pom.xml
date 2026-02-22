@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.eclipse.csi</groupId>
-  <artifactId>signpath-maven-plugin</artifactId>
+  <artifactId>codesigning-maven-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
-  <name>SignPath Maven Plugin</name>
+  <name>CSI Codesigning Maven Plugin</name>
   <description>Maven plugin that signs artifacts via the SignPath REST API.</description>
-  <url>https://github.com/eclipse-csi/signpath-maven-plugin</url>
+  <url>https://github.com/eclipse-csi/codesigning-maven-plugin</url>
 
   <licenses>
     <license>
@@ -35,9 +35,9 @@
   </organization>
 
   <scm>
-    <connection>scm:git:https://github.com/eclipse-csi/signpath-maven-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/eclipse-csi/signpath-maven-plugin.git</developerConnection>
-    <url>https://github.com/eclipse-csi/signpath-maven-plugin</url>
+    <connection>scm:git:https://github.com/eclipse-csi/codesigning-maven-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/eclipse-csi/codesigning-maven-plugin.git</developerConnection>
+    <url>https://github.com/eclipse-csi/codesigning-maven-plugin</url>
     <tag>HEAD</tag>
   </scm>
 
@@ -558,11 +558,11 @@
                 <goal>verify</goal>
               </goals>
               <environmentVariables>
-                <SIGNPATH_API_TOKEN>my-env-token</SIGNPATH_API_TOKEN>
+                <CSI_CODESIGNING_API_TOKEN>my-env-token</CSI_CODESIGNING_API_TOKEN>
               </environmentVariables>
               <properties>
-                <signpath.pollInterval>1</signpath.pollInterval>
-                <signpath.retryInterval>1</signpath.retryInterval>
+                <csi.codesigning.pollInterval>1</csi.codesigning.pollInterval>
+                <csi.codesigning.retryInterval>1</csi.codesigning.retryInterval>
               </properties>
               <showErrors>true</showErrors>
             </configuration>

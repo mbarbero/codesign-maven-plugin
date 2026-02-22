@@ -1,10 +1,10 @@
-# Contributing to Eclipse CSI SignPath Maven Plugin
+# Contributing to Eclipse CSI Codesigning Maven Plugin
 
 Thanks for your interest in this project.
 
 ## Project Description
 
-The Eclipse CSI SignPath Maven Plugin is a Maven plugin that signs
+The Eclipse CSI Codesigning Maven Plugin is a Maven plugin that signs
 artifacts via the SignPath REST API. It is part of the Eclipse Common
 Security Infrastructure (CSI) project.
 
@@ -19,7 +19,7 @@ and more.
 
 The project maintains the following source code repository:
 
-- https://github.com/eclipse-csi/signpath-maven-plugin
+- https://github.com/eclipse-csi/codesigning-maven-plugin
 
 ## Eclipse Development Process
 
@@ -102,4 +102,4 @@ Contact the project developers via the project's "dev" list:
 
 For bug reports and feature requests, please use GitHub Issues:
 
-- https://github.com/eclipse-csi/signpath-maven-plugin/issues
+- https://github.com/eclipse-csi/codesigning-maven-plugin/issues
