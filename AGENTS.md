@@ -18,6 +18,21 @@ Eclipse CSI Codesign Maven Plugin — a Maven plugin that signs build artifacts 
 
 Requires Java 21+ and Maven 3.9+ (enforced by maven-enforcer-plugin).
 
+## Development Setup
+
+This project uses [prek](https://prek.j178.dev/) for Git hooks.
+
+- **prek install** — Initialize hooks
+- **prek run --all-files** — Run all quality checks
+
+### Required System Tools
+
+The following tools must be installed on the host to run all checks and build profiles:
+
+- **poutine** (for `pre-commit` workflow analysis)
+- **cdxgen** (for SBOM generation)
+- **cyclonedx-cli** (for SBOM merging)
+
 ## Contribution guideline
 
 Commit messages shall use [convential commits format](https://www.conventionalcommits.org/en/v1.0.0/#specification)

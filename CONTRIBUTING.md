@@ -79,12 +79,25 @@ This installs two hooks driven by `.pre-commit-config.yaml`:
 
 - **pre-commit** — runs:
   - [zizmor](https://github.com/woodruffw/zizmor) (GitHub Actions security linter)
+  - [poutine](https://github.com/boostsecurityio/poutine) (Build pipeline security analyzer)
   - `actionlint` and YAML validation for GitHub workflows
   - `ruff`/`ruff-format` for Python scripts under `.github/scripts`
-  - `google-java-format` for Java sources under `src/`
+  - `google-java-format` (via `pretty-format-java`) for Java sources under `src/`
   - the local POM consistency check and Maven unit tests
   on every `git commit`.
 - **pre-push** — runs the Maven integration tests on every `git push`.
+
+### Additional Development Tools
+
+Some quality checks and build profiles require tools to be installed on your
+system:
+
+| Tool | Purpose | Installation |
+|---|---|---|
+| **poutine** | Workflow security analysis (run by `pre-commit`) | `brew install boostsecurityio/tap/poutine` |
+| **cdxgen** | GitHub Actions SBOM generation (used in `generate-sbom` profile) | `npm install -g @cyclonedx/cdxgen` |
+| **cyclonedx-cli** | SBOM merging (used in `generate-sbom` profile) | `brew install cyclonedx-cli` |
+| **GraalVM** | Native CLI binary builds (optional) | [graalvm.org](https://www.graalvm.org/) |
 
 ### Running the Python scripts manually
 

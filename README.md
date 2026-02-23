@@ -224,7 +224,7 @@ in the `package` phase:
 mvn clean verify -Pgenerate-sbom
 ```
 
-Prerequisite: install CycloneDX CLI (`cyclonedx`) to merge SBOMs into a single file.
+Prerequisites: install **cdxgen** (`npm install -g @cyclonedx/cdxgen`) and **CycloneDX CLI** (`cyclonedx`) to generate and merge SBOMs. See [CONTRIBUTING.md](CONTRIBUTING.md) for installation details.
 
 This writes:
 
