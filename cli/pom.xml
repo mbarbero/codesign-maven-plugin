@@ -131,6 +131,56 @@
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli-codegen</artifactId>
+            <version>${picocli.version}</version>
+            <type>jar</type>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>generate-manpage-adoc</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <includeProjectDependencies>true</includeProjectDependencies>
+              <includePluginDependencies>true</includePluginDependencies>
+              <mainClass>picocli.codegen.docgen.manpage.ManPageGenerator</mainClass>
+              <arguments>
+                <argument>--outdir=${project.build.directory}/generated-picocli-docs</argument>
+                <argument>org.eclipse.csi.codesign.cli.CodesignCli</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-manpage-html</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>process-asciidoc</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${project.build.directory}/generated-picocli-docs</sourceDirectory>
+              <outputDirectory>${project.build.directory}/generated-docs</outputDirectory>
+              <backend>html5</backend>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <executions>

@@ -22,6 +22,7 @@ updates:
           - "org.cyclonedx:*"
           - "org.graalvm.buildtools:*"
           - "dev.sigstore:*"
+          - "org.asciidoctor:*"
       dependencies:
         patterns:
           - "*"
