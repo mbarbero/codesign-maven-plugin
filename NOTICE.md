@@ -34,10 +34,10 @@ The project maintains the following source code repository:
 
 This project leverages the following third party content.
 
-OkHttp (4.12.0)
+OkHttp (5.3.2)
 
 - License: Apache License, 2.0
 
-Gson (2.11.0)
+Gson (2.13.2)
 
 - License: Apache License, 2.0

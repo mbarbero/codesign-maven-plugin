@@ -1,5 +1,8 @@
 # codesign CLI
 
+> For a full guide covering both the CLI and the Maven plugin, see
+> [USAGE.md](../USAGE.md) at the repository root.
+
 A native command-line tool for signing artifacts via the
 [SignPath](https://about.signpath.io/) REST API. Supports all common OS/CPU
 targets as a single self-contained binary (no JVM required).
@@ -74,6 +77,7 @@ codesign sign [OPTIONS] <file> [<file>...]
 | `--description` | Description shown in the signing request |
 | `--param key=value` | Custom parameter (repeatable) |
 | `--api-token` | API token (see Authentication above) |
+| `--base-url` | SignPath API base URL (default: `https://app.signpath.io/Api`) |
 | `--output` | Output file path (single-file mode only) |
 | `--output-dir` | Output directory (preserves original filenames) |
 | `--force-overwrite` | Allow in-place replacement of input files |
@@ -198,9 +202,12 @@ maximum time the CLI waits for signing to complete. All other timing parameters
 | Parameter | Formula | Example (600 s) |
 | --- | --- | --- |
 | Poll interval | `clamp(timeout/20, 2s, 30s)` | 30 s |
+| Retry interval | `clamp(timeout/20, 2s, 30s)` | 30 s |
 | HTTP read/write timeout | `clamp(timeout/10, 10s, 60s)` | 60 s |
 | Connect timeout | `min(30s, timeout)` | 30 s |
 | Retry timeout | `max(10s, timeout/4)` | 150 s |
+
+The number of retries is fixed at **5** and is not configurable via the CLI.
 
 Use `--verbose` to see the derived values for a given timeout.
 
