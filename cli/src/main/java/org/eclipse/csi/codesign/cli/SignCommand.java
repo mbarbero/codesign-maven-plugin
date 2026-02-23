@@ -181,7 +181,8 @@ class SignCommand implements Callable<Integer> {
 
   @Option(
       names = {"--verbose", "-v"},
-      description = "Enable verbose output (shows derived timing parameters and download progress).")
+      description =
+          "Enable verbose output (shows derived timing parameters and download progress).")
   boolean verbose;
 
   @Override
@@ -281,7 +282,10 @@ class SignCommand implements Callable<Integer> {
       client.downloadSignedArtifact(status, tmpPath);
       try {
         Files.move(
-            tmpPath, outputPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            tmpPath,
+            outputPath,
+            StandardCopyOption.ATOMIC_MOVE,
+            StandardCopyOption.REPLACE_EXISTING);
       } catch (AtomicMoveNotSupportedException e) {
         // Fallback for cross-filesystem moves or platforms that don't support atomic rename
         Files.move(tmpPath, outputPath, StandardCopyOption.REPLACE_EXISTING);

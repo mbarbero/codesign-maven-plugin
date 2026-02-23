@@ -31,8 +31,8 @@ class CodesignApiArchTest {
 
   /**
    * {@link RetryInterceptor} is an OkHttp application-level interceptor and is purely an
-   * implementation detail of {@link CodesignClient}. It must remain package-private so that
-   * callers of the API cannot depend on it.
+   * implementation detail of {@link CodesignClient}. It must remain package-private so that callers
+   * of the API cannot depend on it.
    */
   @ArchTest
   static final ArchRule retryInterceptorIsPackagePrivate =
@@ -41,12 +41,12 @@ class CodesignApiArchTest {
           .haveSimpleName("RetryInterceptor")
           .should()
           .notBePublic()
-          .because("RetryInterceptor is an OkHttp implementation detail, not part of the public API");
+          .because(
+              "RetryInterceptor is an OkHttp implementation detail, not part of the public API");
 
   /**
    * Fields of API classes must not be public. All state should be accessed through explicit,
-   * intentionally designed accessors, preventing callers from depending on internal storage
-   * layout.
+   * intentionally designed accessors, preventing callers from depending on internal storage layout.
    *
    * <p>Note: Java record components have private backing fields; their public accessor methods are
    * not affected by this rule.
