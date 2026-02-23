@@ -84,8 +84,11 @@ jobs:
         with:
           subject-path: |
             codesign-api/target/staging-deploy/**/*.jar
+            codesign-api/target/staging-deploy/**/*.pom
             codesign-maven-plugin/target/staging-deploy/**/*.jar
+            codesign-maven-plugin/target/staging-deploy/**/*.pom
             cli/target/staging-deploy/**/*.jar
+            cli/target/staging-deploy/**/*.pom
 
   native-binaries:
     name: Native binary (${{ matrix.platform }})
