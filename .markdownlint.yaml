@@ -1,0 +1,6 @@
+default: true
+
+# MD013/line-length: disabled — many lines in tables, code blocks, and
+# prose naturally exceed 80 characters; enforcing a limit here would require
+# either disruptive rewrapping or ignoring the rule selectively everywhere.
+MD013: false

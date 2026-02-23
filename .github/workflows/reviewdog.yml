@@ -111,7 +111,8 @@ jobs:
           # actionlint/ruff/ruff-format have dedicated reviewdog jobs above.
           # zizmor has a dedicated job in ci-guardrails.yml (with SARIF upload).
           # check-pom-consistency has a dedicated job in ci-guardrails.yml.
-          SKIP: poutine,unit-tests,actionlint,ruff,ruff-format,zizmor,check-pom-consistency
+          # markdownlint has a dedicated reviewdog job above.
+          SKIP: poutine,unit-tests,actionlint,ruff,ruff-format,zizmor,check-pom-consistency,markdownlint
         run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
@@ -127,3 +128,28 @@ jobs:
         run: |
           echo "::error::Pre-commit checks failed. Run locally: prek run --all-files"
           exit 1
+
+  reviewdog-markdownlint:
+    name: reviewdog (markdownlint)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to post review comments
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: markdownlint with reviewdog
+        uses: reviewdog/action-markdownlint@3667398db9118d7e78f7a63d10e26ce454ba5f58 # v0.26.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          filter_mode: added
+          fail_level: error
+          level: warning
