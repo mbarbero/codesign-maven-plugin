@@ -12,16 +12,14 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 LATEST_SECTION = """\
   <div class="card">
-    <h2>Latest Release</h2>
-    <p>Documentation for the most recent stable release (v{version}).</p>
-    <a class="big" href="latest/">Latest &#8594;</a>
+    <h2>Latest Release (v{version})</h2>
+{links}
   </div>"""
 
 SNAPSHOT_SECTION = """\
   <div class="card">
-    <h2>Snapshot</h2>
-    <p>Documentation built from the <code>main</code> branch ({version}, may be unstable).</p>
-    <a class="big snap" href="snapshot/">Snapshot &#8594;</a>
+    <h2>Snapshot ({version}, may be unstable)</h2>
+{links}
   </div>"""
 
 ALL_RELEASES_SECTION = """\
@@ -31,32 +29,6 @@ ALL_RELEASES_SECTION = """\
 {items}
     </ul>
   </div>"""
-
-RELEASE_ITEM = '      <li><a href="{v}/">v{v}</a></li>'
-
-APIDOCS_LATEST_SECTION = """\
-  <div class="card">
-    <h2>API Javadoc &ndash; Latest Release</h2>
-    <p>Javadoc for the most recent stable release (v{version}).</p>
-    <a class="big" href="apidocs/latest/">Latest API Docs &#8594;</a>
-  </div>"""
-
-APIDOCS_SNAPSHOT_SECTION = """\
-  <div class="card">
-    <h2>API Javadoc &ndash; Snapshot</h2>
-    <p>Javadoc built from the <code>main</code> branch ({version}, may be unstable).</p>
-    <a class="big snap" href="apidocs/snapshot/">Snapshot API Docs &#8594;</a>
-  </div>"""
-
-APIDOCS_ALL_RELEASES_SECTION = """\
-  <div class="card">
-    <h2>API Javadoc &ndash; All Releases</h2>
-    <ul>
-{items}
-    </ul>
-  </div>"""
-
-APIDOCS_RELEASE_ITEM = '      <li><a href="apidocs/{v}/">v{v}</a></li>'
 
 
 def version_key(v):
@@ -78,47 +50,66 @@ def read_stored_version(directory):
         return None
 
 
-versions = sorted(
+apidocs_dir = os.path.join(STORE, "apidocs")
+
+plugin_versions = sorted(
     [e.name for e in os.scandir(STORE) if e.is_dir() and re.match(r"^\d", e.name)],
+    key=version_key,
+    reverse=True,
+)
+
+apidocs_versions = sorted(
+    [e.name for e in os.scandir(apidocs_dir) if e.is_dir() and re.match(r"^\d", e.name)],
+    key=version_key,
+    reverse=True,
+) if os.path.isdir(apidocs_dir) else []
+
+all_versions = sorted(
+    set(plugin_versions) | set(apidocs_versions),
     key=version_key,
     reverse=True,
 )
 
 sections = []
 
-if os.path.isdir(os.path.join(STORE, "latest")):
-    latest_version = read_stored_version("latest") or (versions[0] if versions else "")
-    sections.append(LATEST_SECTION.format(version=latest_version))
+# Latest release card
+has_latest_plugin = os.path.isdir(os.path.join(STORE, "latest"))
+has_latest_apidocs = os.path.isdir(os.path.join(apidocs_dir, "latest"))
+if has_latest_plugin or has_latest_apidocs:
+    version = (read_stored_version("latest") or
+               read_stored_version("apidocs/latest") or
+               (all_versions[0] if all_versions else ""))
+    links = []
+    if has_latest_plugin:
+        links.append('    <a class="big" href="latest/">Plugin Docs &#8594;</a>')
+    if has_latest_apidocs:
+        links.append('    <a class="big" href="apidocs/latest/">API Javadoc &#8594;</a>')
+    sections.append(LATEST_SECTION.format(version=version, links="\n".join(links)))
 
-if os.path.isdir(os.path.join(STORE, "snapshot")):
-    snapshot_version = read_stored_version("snapshot") or ""
-    sections.append(SNAPSHOT_SECTION.format(version=snapshot_version))
+# Snapshot card
+has_snapshot_plugin = os.path.isdir(os.path.join(STORE, "snapshot"))
+has_snapshot_apidocs = os.path.isdir(os.path.join(apidocs_dir, "snapshot"))
+if has_snapshot_plugin or has_snapshot_apidocs:
+    version = (read_stored_version("snapshot") or
+               read_stored_version("apidocs/snapshot") or "")
+    links = []
+    if has_snapshot_plugin:
+        links.append('    <a class="big snap" href="snapshot/">Plugin Docs &#8594;</a>')
+    if has_snapshot_apidocs:
+        links.append('    <a class="big snap" href="apidocs/snapshot/">API Javadoc &#8594;</a>')
+    sections.append(SNAPSHOT_SECTION.format(version=version, links="\n".join(links)))
 
-if versions:
-    items = "\n".join(RELEASE_ITEM.format(v=v) for v in versions)
-    sections.append(ALL_RELEASES_SECTION.format(items=items))
-
-apidocs_dir = os.path.join(STORE, "apidocs")
-if os.path.isdir(apidocs_dir):
-    apidocs_versions = sorted(
-        [e.name for e in os.scandir(apidocs_dir) if e.is_dir() and re.match(r"^\d", e.name)],
-        key=version_key,
-        reverse=True,
-    )
-else:
-    apidocs_versions = []
-
-if os.path.isdir(os.path.join(apidocs_dir, "latest")):
-    latest_version = read_stored_version("apidocs/latest") or (apidocs_versions[0] if apidocs_versions else "")
-    sections.append(APIDOCS_LATEST_SECTION.format(version=latest_version))
-
-if os.path.isdir(os.path.join(apidocs_dir, "snapshot")):
-    snapshot_version = read_stored_version("apidocs/snapshot") or ""
-    sections.append(APIDOCS_SNAPSHOT_SECTION.format(version=snapshot_version))
-
-if apidocs_versions:
-    items = "\n".join(APIDOCS_RELEASE_ITEM.format(v=v) for v in apidocs_versions)
-    sections.append(APIDOCS_ALL_RELEASES_SECTION.format(items=items))
+# All releases card
+if all_versions:
+    items = []
+    for v in all_versions:
+        link_parts = []
+        if v in plugin_versions:
+            link_parts.append(f'<a href="{v}/">Plugin Docs</a>')
+        if v in apidocs_versions:
+            link_parts.append(f'<a href="apidocs/{v}/">API Javadoc</a>')
+        items.append(f'      <li><strong>v{v}</strong> &mdash; {" &bull; ".join(link_parts)}</li>')
+    sections.append(ALL_RELEASES_SECTION.format(items="\n".join(items)))
 
 with open(os.path.join(SCRIPT_DIR, "site-index-template.html")) as f:
     template = Template(f.read())
@@ -132,4 +123,4 @@ html = template.substitute(
 with open(os.path.join(STORE, "index.html"), "w") as f:
     f.write(html)
 
-print("Generated index.html with %d release(s)" % len(versions))
+print("Generated index.html with %d release(s)" % len(all_versions))
