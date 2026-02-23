@@ -46,10 +46,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Build Maven site and API Javadoc
+      - name: Build Maven site, API Javadoc, and CLI man page
         run: |
           ./mvnw -B -ntp -DskipTests -pl maven-plugin --also-make package site
           ./mvnw -B -ntp -DskipTests -pl api javadoc:javadoc
+          ./mvnw -B -ntp -DskipTests -pl cli --also-make package
 
       # Check out the accumulated gh-pages content so we can overlay new files
       # and re-deploy the full site (native Pages has no keep_files equivalent).
@@ -73,9 +74,11 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           rm -rf target/gh-pages-store/snapshot
-          mkdir -p target/gh-pages-store/snapshot/maven-plugin target/gh-pages-store/snapshot/api-javadoc
+          mkdir -p target/gh-pages-store/snapshot/maven-plugin target/gh-pages-store/snapshot/api-javadoc \
+                   target/gh-pages-store/snapshot/cli-manpage
           cp -r maven-plugin/target/site/. target/gh-pages-store/snapshot/maven-plugin/
           cp -r api/target/reports/apidocs/. target/gh-pages-store/snapshot/api-javadoc/
+          cp -r cli/target/generated-docs/. target/gh-pages-store/snapshot/cli-manpage/
           python3 -c "import xml.etree.ElementTree as ET; ns={'m':'http://maven.apache.org/POM/4.0.0'}; print(ET.parse('pom.xml').getroot().find('m:version',ns).text)" \
             > target/gh-pages-store/snapshot/.version
 
@@ -85,11 +88,15 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           rm -rf "target/gh-pages-store/${version}" target/gh-pages-store/latest
           mkdir -p "target/gh-pages-store/${version}/maven-plugin" "target/gh-pages-store/${version}/api-javadoc" \
-                   target/gh-pages-store/latest/maven-plugin target/gh-pages-store/latest/api-javadoc
+                   "target/gh-pages-store/${version}/cli-manpage" \
+                   target/gh-pages-store/latest/maven-plugin target/gh-pages-store/latest/api-javadoc \
+                   target/gh-pages-store/latest/cli-manpage
           cp -r maven-plugin/target/site/. "target/gh-pages-store/${version}/maven-plugin/"
           cp -r maven-plugin/target/site/. target/gh-pages-store/latest/maven-plugin/
           cp -r api/target/reports/apidocs/. "target/gh-pages-store/${version}/api-javadoc/"
           cp -r api/target/reports/apidocs/. target/gh-pages-store/latest/api-javadoc/
+          cp -r cli/target/generated-docs/. "target/gh-pages-store/${version}/cli-manpage/"
+          cp -r cli/target/generated-docs/. target/gh-pages-store/latest/cli-manpage/
           echo "$version" > "target/gh-pages-store/${version}/.version"
           echo "$version" > target/gh-pages-store/latest/.version
 
