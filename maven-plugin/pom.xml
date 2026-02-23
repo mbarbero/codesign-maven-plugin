@@ -15,6 +15,7 @@
 
   <name>Eclipse CSI Codesign Maven Plugin</name>
   <description>Maven plugin that signs artifacts via the SignPath REST API.</description>
+  <url>https://github.com/eclipse-csi/codesign-maven-plugin</url>
 
   <dependencies>
     <dependency>

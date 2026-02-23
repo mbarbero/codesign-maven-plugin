@@ -347,7 +347,7 @@
             </project>
             <signing>
               <pgp>
-                <active>ALWAYS</active>
+                <active>RELEASE</active>
                 <armored>true</armored>
               </pgp>
             </signing>
@@ -368,22 +368,26 @@
                     <url>https://central.sonatype.com/api/v1/publisher</url>
                     <namespace>org.eclipse.csi</namespace>
                     <applyMavenCentralRules>true</applyMavenCentralRules>
-                    <stagingRepositories>api/target/staging-deploy
-maven-plugin/target/staging-deploy
-cli/target/staging-deploy</stagingRepositories>
+                    <stagingRepositories>
+                      <stagingRepository>api/target/staging-deploy</stagingRepository>
+                      <stagingRepository>maven-plugin/target/staging-deploy</stagingRepository>
+                      <stagingRepository>cli/target/staging-deploy</stagingRepository>
+                    </stagingRepositories>
                   </sonatype>
                 </mavenCentral>
                 <nexus2>
                   <snapshot-deploy>
                     <active>SNAPSHOT</active>
                     <snapshotUrl>https://central.sonatype.com/repository/maven-snapshots/</snapshotUrl>
-                    <applyMavenCentralRules>true</applyMavenCentralRules>
+                    <applyMavenCentralRules>false</applyMavenCentralRules>
                     <snapshotSupported>true</snapshotSupported>
                     <closeRepository>true</closeRepository>
                     <releaseRepository>true</releaseRepository>
-                    <stagingRepositories>api/target/staging-deploy
-maven-plugin/target/staging-deploy
-cli/target/staging-deploy</stagingRepositories>
+                    <stagingRepositories>
+                      <stagingRepository>api/target/staging-deploy</stagingRepository>
+                      <stagingRepository>maven-plugin/target/staging-deploy</stagingRepository>
+                      <stagingRepository>cli/target/staging-deploy</stagingRepository>
+                    </stagingRepositories>
                   </snapshot-deploy>
                 </nexus2>
               </maven>
@@ -494,7 +498,7 @@ cli/target/staging-deploy</stagingRepositories>
     <profile>
       <id>release</id>
       <properties>
-        <altDeploymentRepository>local::file:./target/staging-deploy</altDeploymentRepository>
+        <altDeploymentRepository>local::file:${project.build.directory}/staging-deploy</altDeploymentRepository>
       </properties>
       <build>
         <defaultGoal>deploy</defaultGoal>

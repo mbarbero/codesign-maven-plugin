@@ -15,6 +15,7 @@
 
   <name>Eclipse CSI Codesign CLI</name>
   <description>Command-line interface for signing artifacts via the SignPath REST API.</description>
+  <url>https://github.com/eclipse-csi/codesign-maven-plugin</url>
 
   <properties>
     <main.class>org.eclipse.csi.codesign.cli.CodesignCli</main.class>
