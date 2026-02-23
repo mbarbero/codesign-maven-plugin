@@ -58,11 +58,19 @@ plugin_versions = sorted(
     reverse=True,
 )
 
-apidocs_versions = sorted(
-    [e.name for e in os.scandir(apidocs_dir) if e.is_dir() and re.match(r"^\d", e.name)],
-    key=version_key,
-    reverse=True,
-) if os.path.isdir(apidocs_dir) else []
+apidocs_versions = (
+    sorted(
+        [
+            e.name
+            for e in os.scandir(apidocs_dir)
+            if e.is_dir() and re.match(r"^\d", e.name)
+        ],
+        key=version_key,
+        reverse=True,
+    )
+    if os.path.isdir(apidocs_dir)
+    else []
+)
 
 all_versions = sorted(
     set(plugin_versions) | set(apidocs_versions),
@@ -76,27 +84,36 @@ sections = []
 has_latest_plugin = os.path.isdir(os.path.join(STORE, "latest"))
 has_latest_apidocs = os.path.isdir(os.path.join(apidocs_dir, "latest"))
 if has_latest_plugin or has_latest_apidocs:
-    version = (read_stored_version("latest") or
-               read_stored_version("apidocs/latest") or
-               (all_versions[0] if all_versions else ""))
+    version = (
+        read_stored_version("latest")
+        or read_stored_version("apidocs/latest")
+        or (all_versions[0] if all_versions else "")
+    )
     links = []
     if has_latest_plugin:
-        links.append('    <a class="big" href="latest/">Plugin Docs &#8594;</a>')
+        links.append('    <a class="big" href="latest/">Maven Plugin Docs &#8594;</a>')
     if has_latest_apidocs:
-        links.append('    <a class="big" href="apidocs/latest/">API Javadoc &#8594;</a>')
+        links.append(
+            '    <a class="big" href="apidocs/latest/">API Javadoc &#8594;</a>'
+        )
     sections.append(LATEST_SECTION.format(version=version, links="\n".join(links)))
 
 # Snapshot card
 has_snapshot_plugin = os.path.isdir(os.path.join(STORE, "snapshot"))
 has_snapshot_apidocs = os.path.isdir(os.path.join(apidocs_dir, "snapshot"))
 if has_snapshot_plugin or has_snapshot_apidocs:
-    version = (read_stored_version("snapshot") or
-               read_stored_version("apidocs/snapshot") or "")
+    version = (
+        read_stored_version("snapshot") or read_stored_version("apidocs/snapshot") or ""
+    )
     links = []
     if has_snapshot_plugin:
-        links.append('    <a class="big snap" href="snapshot/">Plugin Docs &#8594;</a>')
+        links.append(
+            '    <a class="big snap" href="snapshot/">Maven Plugin Docs &#8594;</a>'
+        )
     if has_snapshot_apidocs:
-        links.append('    <a class="big snap" href="apidocs/snapshot/">API Javadoc &#8594;</a>')
+        links.append(
+            '    <a class="big snap" href="apidocs/snapshot/">API Javadoc &#8594;</a>'
+        )
     sections.append(SNAPSHOT_SECTION.format(version=version, links="\n".join(links)))
 
 # All releases card
@@ -105,10 +122,12 @@ if all_versions:
     for v in all_versions:
         link_parts = []
         if v in plugin_versions:
-            link_parts.append(f'<a href="{v}/">Plugin Docs</a>')
+            link_parts.append(f'<a href="{v}/">Maven Plugin Docs</a>')
         if v in apidocs_versions:
             link_parts.append(f'<a href="apidocs/{v}/">API Javadoc</a>')
-        items.append(f'      <li><strong>v{v}</strong> &mdash; {" &bull; ".join(link_parts)}</li>')
+        items.append(
+            f"      <li><strong>v{v}</strong> &mdash; {' &bull; '.join(link_parts)}</li>"
+        )
     sections.append(ALL_RELEASES_SECTION.format(items="\n".join(items)))
 
 with open(os.path.join(SCRIPT_DIR, "site-index-template.html")) as f:

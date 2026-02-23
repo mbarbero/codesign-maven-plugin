@@ -21,7 +21,7 @@ codesign sign app.jar \
 
 Set `CSI_CODESIGN_API_TOKEN` (or use `--api-token`) for authentication.
 
-See [`cli/README.md`](cli/README.md) for the full CLI reference.
+See [`codesign-cli/README.md`](codesign-cli/README.md) for the full CLI reference.
 
 ---
 
@@ -61,7 +61,7 @@ modes, failure conditions, and troubleshooting guidance, see **[USAGE.md](USAGE.
 
 # Build a native CLI binary (requires GraalVM with native-image)
 ./mvnw -Pnative package -pl cli --also-make -DskipTests
-# Output: cli/target/codesign  (or codesign.exe on Windows)
+# Output: codesign-cli/target/codesign  (or codesign.exe on Windows)
 ```
 
 To generate both SBOMs in one build (plugin dependencies + GitHub Actions),

@@ -229,4 +229,4 @@ Use `--verbose` to see the derived values for a given timeout.
 ./mvnw -Pnative package -pl cli --also-make -DskipTests
 ```
 
-The native binary is written to `cli/target/codesign` (or `codesign.exe` on Windows).
+The native binary is written to `codesign-cli/target/codesign` (or `codesign.exe` on Windows).

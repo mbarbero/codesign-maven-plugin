@@ -61,7 +61,7 @@ Three-module Maven aggregator (`codesign-parent`):
 | --- | --- | --- |
 | `codesign-api/` | `codesign-api` | `org.eclipse.csi.codesign` |
 | `codesign-maven-plugin/` | `codesign-maven-plugin` | `org.eclipse.csi.maven.plugins.signing` |
-| `cli/` | `codesign-cli` | `org.eclipse.csi.codesign.cli` |
+| `codesign-cli/` | `codesign-cli` | `org.eclipse.csi.codesign.cli` |
 
 ### Core Components
 

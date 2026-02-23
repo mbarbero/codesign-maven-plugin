@@ -87,8 +87,8 @@ jobs:
             codesign-api/target/staging-deploy/**/*.pom
             codesign-maven-plugin/target/staging-deploy/**/*.jar
             codesign-maven-plugin/target/staging-deploy/**/*.pom
-            cli/target/staging-deploy/**/*.jar
-            cli/target/staging-deploy/**/*.pom
+            codesign-cli/target/staging-deploy/**/*.jar
+            codesign-cli/target/staging-deploy/**/*.pom
 
   native-binaries:
     name: Native binary (${{ matrix.platform }})
@@ -150,7 +150,7 @@ jobs:
           MATRIX_PLATFORM: ${{ matrix.platform }}
         shell: bash
         run: |
-          src="cli/target/${MATRIX_BINARY}"
+          src="codesign-cli/target/${MATRIX_BINARY}"
           dst="codesign-${MATRIX_PLATFORM}"
           if [[ "${MATRIX_PLATFORM}" == "windows-x86_64" ]]; then
             dst="${dst}.exe"

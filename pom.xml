@@ -9,14 +9,14 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>CSI Codesign Parent</name>
-  <description>Parent POM for the CSI Codesign project.</description>
+  <name>Eclipse CSI Codesign Tools</name>
+  <description>Eclipse CSI Codesign tools include API, Maven Plugin, and CLI components.</description>
   <url>https://github.com/eclipse-csi/codesign-maven-plugin</url>
 
   <modules>
     <module>codesign-api</module>
     <module>codesign-maven-plugin</module>
-    <module>cli</module>
+    <module>codesign-cli</module>
   </modules>
 
   <licenses>
@@ -365,7 +365,7 @@
                     <applyMavenCentralRules>true</applyMavenCentralRules>
                     <stagingRepositories>codesign-api/target/staging-deploy
 codesign-maven-plugin/target/staging-deploy
-cli/target/staging-deploy</stagingRepositories>
+codesign-cli/target/staging-deploy</stagingRepositories>
                   </sonatype>
                 </mavenCentral>
                 <nexus2>
@@ -378,7 +378,7 @@ cli/target/staging-deploy</stagingRepositories>
                     <releaseRepository>true</releaseRepository>
                     <stagingRepositories>codesign-api/target/staging-deploy
 codesign-maven-plugin/target/staging-deploy
-cli/target/staging-deploy</stagingRepositories>
+codesign-cli/target/staging-deploy</stagingRepositories>
                   </snapshot-deploy>
                 </nexus2>
               </maven>
