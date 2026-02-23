@@ -21,6 +21,7 @@ updates:
           - "org.jreleaser:*"
           - "org.cyclonedx:*"
           - "org.graalvm.buildtools:*"
+          - "dev.sigstore:*"
       dependencies:
         patterns:
           - "*"
