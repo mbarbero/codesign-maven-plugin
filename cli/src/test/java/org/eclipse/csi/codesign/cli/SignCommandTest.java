@@ -78,10 +78,14 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
                 "--force-overwrite");
     assertNotEquals(0, exit);
   }
@@ -92,10 +96,14 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
                 "--force-overwrite",
                 tempDir.resolve("nonexistent.jar").toString());
     assertNotEquals(0, exit);
@@ -112,11 +120,16 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
-                "--output", tempDir.resolve("signed.jar").toString(),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
+                "--output",
+                tempDir.resolve("signed.jar").toString(),
                 f1.toString(),
                 f2.toString());
     assertNotEquals(0, exit);
@@ -133,10 +146,14 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
                 f1.toString(),
                 f2.toString());
     assertNotEquals(0, exit);
@@ -151,12 +168,18 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
-                "--output", tempDir.resolve("out.jar").toString(),
-                "--output-dir", tempDir.toString(),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
+                "--output",
+                tempDir.resolve("out.jar").toString(),
+                "--output-dir",
+                tempDir.toString(),
                 f.toString());
     assertNotEquals(0, exit);
   }
@@ -170,10 +193,14 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
                 f.toString());
     assertNotEquals(0, exit);
   }
@@ -187,11 +214,16 @@ class SignCommandTest {
         cli()
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "token",
-                "--output", f.toString(), // same as input
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "token",
+                "--output",
+                f.toString(), // same as input
                 f.toString());
     assertNotEquals(0, exit);
   }
@@ -218,11 +250,16 @@ class SignCommandTest {
             .setExecutionExceptionHandler(new PrintExceptionMessageHandler())
             .execute(
                 "sign",
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "policy",
-                "--api-token", "test-token",
-                "--output-dir", tempDir.resolve("out").toString(),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "policy",
+                "--api-token",
+                "test-token",
+                "--output-dir",
+                tempDir.resolve("out").toString(),
                 f1.toString(),
                 f2.toString());
     assertNotEquals(0, exitCode, "Command should fail (non-zero exit code expected)");

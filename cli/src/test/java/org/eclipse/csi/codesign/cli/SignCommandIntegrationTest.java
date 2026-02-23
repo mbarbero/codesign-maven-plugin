@@ -60,13 +60,13 @@ class SignCommandIntegrationTest {
 
   private String statusResponse(String downloadUrl) {
     return """
-        {
-          "status": "Completed",
-          "workflowStatus": "Done",
-          "isFinalStatus": true,
-          "signedArtifactLink": "%s"
-        }
-        """
+    {
+      "status": "Completed",
+      "workflowStatus": "Done",
+      "isFinalStatus": true,
+      "signedArtifactLink": "%s"
+    }
+    """
         .formatted(downloadUrl);
   }
 
@@ -91,12 +91,18 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
-                "--output", output.toString(),
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
+                "--output",
+                output.toString(),
                 input.toString());
 
     assertEquals(0, exit);
@@ -142,12 +148,18 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
-                "--output-dir", outDir.toString(),
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
+                "--output-dir",
+                outDir.toString(),
                 f1.toString(),
                 f2.toString());
 
@@ -177,11 +189,16 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
                 "--force-overwrite",
                 input.toString());
 
@@ -220,13 +237,20 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
-                "--wait-for-completion-timeout", "10",
-                "--output", output.toString(),
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
+                "--wait-for-completion-timeout",
+                "10",
+                "--output",
+                output.toString(),
                 input.toString());
 
     assertEquals(0, exit);
@@ -254,11 +278,16 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
                 "--force-overwrite",
                 input.toString());
 
@@ -278,11 +307,16 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
                 "--force-overwrite",
                 input.toString());
 
@@ -310,15 +344,24 @@ class SignCommandIntegrationTest {
         cli()
             .execute(
                 "sign",
-                "--base-url", server.url("").toString().replaceAll("/$", ""),
-                "--organization-id", "org",
-                "--project-id", "proj",
-                "--signing-policy", "release",
-                "--api-token", "test-token",
-                "--param", "buildNumber=42",
-                "--param", "gitCommit=abc123",
-                "--description", "Release build",
-                "--output", output.toString(),
+                "--base-url",
+                server.url("").toString().replaceAll("/$", ""),
+                "--organization-id",
+                "org",
+                "--project-id",
+                "proj",
+                "--signing-policy",
+                "release",
+                "--api-token",
+                "test-token",
+                "--param",
+                "buildNumber=42",
+                "--param",
+                "gitCommit=abc123",
+                "--description",
+                "Release build",
+                "--output",
+                output.toString(),
                 input.toString());
 
     assertEquals(0, exit);
