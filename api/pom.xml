@@ -13,7 +13,7 @@
   <artifactId>codesign-api</artifactId>
   <packaging>jar</packaging>
 
-  <name>CSI Codesign API</name>
+  <name>Eclipse CSI Codesign API</name>
   <description>Java client library for the SignPath REST API.</description>
 
   <build>

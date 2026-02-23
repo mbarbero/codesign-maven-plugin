@@ -13,7 +13,7 @@
   <artifactId>codesign-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>CSI Codesign Maven Plugin</name>
+  <name>Eclipse CSI Codesign Maven Plugin</name>
   <description>Maven plugin that signs artifacts via the SignPath REST API.</description>
 
   <dependencies>

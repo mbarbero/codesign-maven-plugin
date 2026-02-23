@@ -13,9 +13,9 @@ Eclipse CSI Codesign Maven Plugin — a Maven plugin that signs build artifacts 
 ./mvnw test                                              # Unit tests only (stops before integration-test phase)
 ./mvnw -P'!integration-tests' verify                     # Verify without integration tests
 ./mvnw test -Dtest=SignMojoTest                          # Run a single test class
-./mvnw test -Dtest=SignMojoTest#testSignFiles             # Run a single test method
-./mvnw verify -pl codesign-maven-plugin --also-make      # Plugin module (+ its codesign-api dependency)
-./mvnw verify -pl codesign-api                           # API module only
+./mvnw test -Dtest=SignMojoTest#testSignFiles            # Run a single test method
+./mvnw verify -pl maven-plugin --also-make               # Plugin module (+ its api dependency)
+./mvnw verify -pl api                                    # API module only
 ./mvnw package -pl cli --also-make                       # CLI fat JAR only
 ./mvnw -Pnative package -pl cli --also-make -DskipTests  # Native CLI binary (requires GraalVM 21)
 ./mvnw -Prelease -DskipTests clean verify                # Build with release profile
@@ -25,7 +25,7 @@ Requires **Java 21+** and **Maven 3.9+** (enforced by `maven-enforcer-plugin`).
 The Maven wrapper (`./mvnw`) downloads Maven automatically; a JDK must already be on `PATH`.
 
 > **Integration tests run by default.** The `integration-tests` profile in
-> `codesign-maven-plugin/pom.xml` has `<activeByDefault>true</activeByDefault>`.
+> `maven-plugin/pom.xml` has `<activeByDefault>true</activeByDefault>`.
 > Running `./mvnw verify` at the root always runs them. Use `-P'!integration-tests'`
 > to skip.
 
@@ -59,9 +59,9 @@ Three-module Maven aggregator (`codesign-parent`):
 
 | Module directory | Artifact ID | Root package |
 | --- | --- | --- |
-| `codesign-api/` | `codesign-api` | `org.eclipse.csi.codesign` |
-| `codesign-maven-plugin/` | `codesign-maven-plugin` | `org.eclipse.csi.maven.plugins.signing` |
-| `codesign-cli/` | `codesign-cli` | `org.eclipse.csi.codesign.cli` |
+| `api/` | `codesign-api` | `org.eclipse.csi.codesign` |
+| `maven-plugin/` | `codesign-maven-plugin` | `org.eclipse.csi.maven.plugins.signing` |
+| `cli/` | `codesign-cli` | `org.eclipse.csi.codesign.cli` |
 
 ### Core Components
 
@@ -97,5 +97,5 @@ Three-module Maven aggregator (`codesign-parent`):
 ### Testing Patterns
 
 - **Unit tests** (`./mvnw test`): `MockWebServer` simulates the SignPath API. `SignMojoTest` uses reflection-based field injection to set Mojo parameters (no DI framework). All tests use `@TempDir`.
-- **Integration tests** (`integration-tests` profile, active by default): maven-invoker plugin runs projects under `codesign-maven-plugin/src/it/` against a WireMock stub on a reserved random port. Check `codesign-maven-plugin/target/wiremock.log` on failures.
+- **Integration tests** (`integration-tests` profile, active by default): maven-invoker plugin runs projects under `maven-plugin/src/it/` against a WireMock stub on a reserved random port. Check `maven-plugin/target/wiremock.log` on failures.
 - **Architecture tests**: `CodesignApiArchTest`, `MavenPluginArchTest`, `CliArchTest` (ArchUnit) enforce visibility rules — e.g. only `@Mojo`-annotated classes may be `public` in the plugin module; only `CodesignCli` may be `public` in the CLI module.

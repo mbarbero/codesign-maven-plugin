@@ -19,7 +19,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.apache.maven.plugins.annotations.Mojo;
 
 /**
- * Architecture rules for the {@code codesign-maven-plugin} module.
+ * Architecture rules for the {@code maven-plugin} module.
  *
  * <p>Maven instantiates Mojo classes reflectively, so they must be public. All other helper types
  * (enums, utility classes, configuration holders) are internal implementation details and should

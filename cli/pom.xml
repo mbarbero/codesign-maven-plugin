@@ -13,7 +13,7 @@
   <artifactId>codesign-cli</artifactId>
   <packaging>jar</packaging>
 
-  <name>CSI Codesign CLI</name>
+  <name>Eclipse CSI Codesign CLI</name>
   <description>Command-line interface for signing artifacts via the SignPath REST API.</description>
 
   <properties>

@@ -53,4 +53,4 @@ jobs:
 
       - name: Show WireMock log on failure
         if: failure()
-        run: cat codesign-maven-plugin/target/wiremock.log 2>/dev/null || echo "(WireMock log not found)"
+        run: cat maven-plugin/target/wiremock.log 2>/dev/null || echo "(WireMock log not found)"

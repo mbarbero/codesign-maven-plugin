@@ -14,9 +14,9 @@
   <url>https://github.com/eclipse-csi/codesign-maven-plugin</url>
 
   <modules>
-    <module>codesign-api</module>
-    <module>codesign-maven-plugin</module>
-    <module>codesign-cli</module>
+    <module>api</module>
+    <module>maven-plugin</module>
+    <module>cli</module>
   </modules>
 
   <licenses>
@@ -363,9 +363,9 @@
                     <url>https://central.sonatype.com/api/v1/publisher</url>
                     <namespace>org.eclipse.csi</namespace>
                     <applyMavenCentralRules>true</applyMavenCentralRules>
-                    <stagingRepositories>codesign-api/target/staging-deploy
-codesign-maven-plugin/target/staging-deploy
-codesign-cli/target/staging-deploy</stagingRepositories>
+                    <stagingRepositories>api/target/staging-deploy
+maven-plugin/target/staging-deploy
+cli/target/staging-deploy</stagingRepositories>
                   </sonatype>
                 </mavenCentral>
                 <nexus2>
@@ -376,9 +376,9 @@ codesign-cli/target/staging-deploy</stagingRepositories>
                     <snapshotSupported>true</snapshotSupported>
                     <closeRepository>true</closeRepository>
                     <releaseRepository>true</releaseRepository>
-                    <stagingRepositories>codesign-api/target/staging-deploy
-codesign-maven-plugin/target/staging-deploy
-codesign-cli/target/staging-deploy</stagingRepositories>
+                    <stagingRepositories>api/target/staging-deploy
+maven-plugin/target/staging-deploy
+cli/target/staging-deploy</stagingRepositories>
                   </snapshot-deploy>
                 </nexus2>
               </maven>

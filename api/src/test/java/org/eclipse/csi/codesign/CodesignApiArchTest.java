@@ -19,7 +19,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
- * Architecture rules for the {@code codesign-api} module.
+ * Architecture rules for the {@code api} module.
  *
  * <p>Rules here enforce that implementation details (HTTP plumbing, retry logic) are never exposed
  * as part of the public API surface.
