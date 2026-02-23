@@ -73,31 +73,25 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           rm -rf target/gh-pages-store/snapshot
-          mkdir -p target/gh-pages-store/snapshot
-          cp -r maven-plugin/target/site/. target/gh-pages-store/snapshot/
+          mkdir -p target/gh-pages-store/snapshot/maven-plugin target/gh-pages-store/snapshot/api-javadoc
+          cp -r maven-plugin/target/site/. target/gh-pages-store/snapshot/maven-plugin/
+          cp -r api/target/reports/apidocs/. target/gh-pages-store/snapshot/api-javadoc/
           python3 -c "import xml.etree.ElementTree as ET; ns={'m':'http://maven.apache.org/POM/4.0.0'}; print(ET.parse('pom.xml').getroot().find('m:version',ns).text)" \
             > target/gh-pages-store/snapshot/.version
-          rm -rf target/gh-pages-store/apidocs/snapshot
-          mkdir -p target/gh-pages-store/apidocs/snapshot
-          cp -r api/target/reports/apidocs/. target/gh-pages-store/apidocs/snapshot/
-          cp target/gh-pages-store/snapshot/.version target/gh-pages-store/apidocs/snapshot/.version
 
       - name: Update release content
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           version="${GITHUB_REF_NAME#v}"
           rm -rf "target/gh-pages-store/${version}" target/gh-pages-store/latest
-          mkdir -p "target/gh-pages-store/${version}" target/gh-pages-store/latest
-          cp -r maven-plugin/target/site/. "target/gh-pages-store/${version}/"
-          cp -r maven-plugin/target/site/. target/gh-pages-store/latest/
+          mkdir -p "target/gh-pages-store/${version}/maven-plugin" "target/gh-pages-store/${version}/api-javadoc" \
+                   target/gh-pages-store/latest/maven-plugin target/gh-pages-store/latest/api-javadoc
+          cp -r maven-plugin/target/site/. "target/gh-pages-store/${version}/maven-plugin/"
+          cp -r maven-plugin/target/site/. target/gh-pages-store/latest/maven-plugin/
+          cp -r api/target/reports/apidocs/. "target/gh-pages-store/${version}/api-javadoc/"
+          cp -r api/target/reports/apidocs/. target/gh-pages-store/latest/api-javadoc/
           echo "$version" > "target/gh-pages-store/${version}/.version"
           echo "$version" > target/gh-pages-store/latest/.version
-          rm -rf "target/gh-pages-store/apidocs/${version}" target/gh-pages-store/apidocs/latest
-          mkdir -p "target/gh-pages-store/apidocs/${version}" target/gh-pages-store/apidocs/latest
-          cp -r api/target/reports/apidocs/. "target/gh-pages-store/apidocs/${version}/"
-          cp -r api/target/reports/apidocs/. target/gh-pages-store/apidocs/latest/
-          echo "$version" > "target/gh-pages-store/apidocs/${version}/.version"
-          echo "$version" > target/gh-pages-store/apidocs/latest/.version
 
       - name: Install Python dependencies
         run: pip install defusedxml
