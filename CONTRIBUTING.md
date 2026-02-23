@@ -49,9 +49,24 @@ For more information, please see the Eclipse Committer Handbook:
 
 ## Development Setup
 
+### Prerequisites
+
+Install the following tools **before** running any build or quality check:
+
+| Tool | Version | Required for |
+|---|---|---|
+| **Java JDK** | 21+ | Maven wrapper (`./mvnw`), `unit-tests` and `integration-tests` git hooks (`language: system`), `pretty-format-java` Java formatter |
+| **prek** | any | Running Git hooks (see below) |
+| **poutine** | any | `poutine` git hook — workflow security analysis |
+
+`cdxgen` and `cyclonedx-cli` are additionally needed for the `generate-sbom`
+profile; see [Additional Development Tools](#additional-development-tools) below.
+
 This project uses [prek](https://prek.j178.dev/) to run quality checks
-automatically as Git hooks. prek is a fast, dependency-free drop-in
-replacement for [pre-commit](https://pre-commit.com/) written in Rust.
+automatically as Git hooks. prek is written in Rust and does not require
+Python to install itself — but the hooks it drives require a Java JDK on
+the `PATH` (for Maven builds and the Java formatter) and the `poutine`
+binary for workflow security analysis.
 
 ### Installing prek
 
@@ -95,7 +110,7 @@ system:
 | Tool | Purpose | Installation |
 |---|---|---|
 | **poutine** | Workflow security analysis (run by `pre-commit`) | `brew install boostsecurityio/tap/poutine` |
-| **cdxgen** | GitHub Actions SBOM generation (used in `generate-sbom` profile) | `npm install -g @cyclonedx/cdxgen` |
+| **cdxgen** | GitHub Actions SBOM generation (used in `generate-sbom` profile) | Requires Node.js; `npm install -g @cyclonedx/cdxgen` |
 | **cyclonedx-cli** | SBOM merging (used in `generate-sbom` profile) | `brew install cyclonedx-cli` |
 | **GraalVM** | Native CLI binary builds (optional) | [graalvm.org](https://www.graalvm.org/) |
 

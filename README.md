@@ -221,10 +221,10 @@ enable the `generate-sbom` profile. This profile runs both generators
 in the `package` phase:
 
 ```shell
-mvn clean verify -Pgenerate-sbom
+./mvnw clean verify -Pgenerate-sbom
 ```
 
-Prerequisites: install **cdxgen** (`npm install -g @cyclonedx/cdxgen`) and **CycloneDX CLI** (`cyclonedx`) to generate and merge SBOMs. See [CONTRIBUTING.md](CONTRIBUTING.md) for installation details.
+Prerequisites: install **Node.js** (required by npm), then **cdxgen** (`npm install -g @cyclonedx/cdxgen`) and **CycloneDX CLI** (`cyclonedx`) to generate and merge SBOMs. See [CONTRIBUTING.md](CONTRIBUTING.md) for installation details.
 
 This writes:
 
@@ -236,7 +236,7 @@ The merged file is attached as an additional Maven artifact with classifier `bom
 
 ## Releasing (Maven Central via JReleaser)
 
-This project includes an rlease pipeline based on JReleaser.
+This project includes a release pipeline based on JReleaser.
 
 - Workflow: `.github/workflows/release.yml`
 - Trigger: push a version tag (for example `v1.0.0`) or run manually via
@@ -263,8 +263,8 @@ configuration without publishing.
 ### Local Dry Run
 
 ```shell
-mvn -Prelease -DskipTests clean verify
-mvn -Prelease -Djreleaser.dry.run=true jreleaser:full-release
+./mvnw -Prelease -DskipTests clean verify
+./mvnw -Prelease -Djreleaser.dry.run=true jreleaser:full-release
 ```
 
 ## Contributing
