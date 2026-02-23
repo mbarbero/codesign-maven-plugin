@@ -1,0 +1,16 @@
+### IDE ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+.vscode/
+bin/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
