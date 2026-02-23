@@ -58,9 +58,14 @@ If none of these are set, the build fails with an error that lists all three opt
 
 ## Selecting Files to Sign
 
-By default the plugin signs the project's main artifact and all attached artifacts.
+By default the plugin signs the project's main artifact when the project uses a
+standard packaging type (`jar`, `war`, `ear`, `rar`, `ejb`, or `maven-plugin`); it does
+**not** sign attached artifacts (e.g. `-sources.jar`, `-javadoc.jar`) unless
+`<signAttachedArtifacts>true</signAttachedArtifacts>` is set explicitly. This behavior is
+controlled by the `signProjectArtifact` parameter (default: `auto`).
+
 Use `<includes>` and `<excludes>` glob patterns (relative to `${project.build.directory}`)
-to refine the selection:
+to additionally select arbitrary files from the build directory:
 
 ```xml
 <configuration>
@@ -87,6 +92,23 @@ To write them to a dedicated folder instead, set `<outputDirectory>`:
 </configuration>
 ```
 
+## Controlling Project Artifact Signing
+
+The `signProjectArtifact` parameter controls whether the Maven project's main artifact
+is included in signing:
+
+| Value | Behaviour |
+| --- | --- |
+| `auto` (default) | Signs the main artifact for `jar`, `war`, `ear`, `rar`, `ejb`, `maven-plugin` packaging; skips it for `pom` and all other types |
+| `true` | Always includes the main artifact |
+| `false` | Never includes the main artifact |
+
+To also sign attached artifacts (sources, javadoc, etc.) set:
+
+```xml
+<signAttachedArtifacts>true</signAttachedArtifacts>
+```
+
 ## Skipping Signing
 
 Signing can be skipped without modifying the POM:
@@ -95,8 +117,9 @@ Signing can be skipped without modifying the POM:
 mvn package -Dcsi.codesign.skip
 ```
 
-Alternatively, set the environment variable `CSI_CODESIGN_SKIP_SIGNING=true` to skip
-signing unconditionally (useful in CI pipelines where signing credentials are absent).
+Alternatively, set the environment variable `CSI_CODESIGN_SKIP_SIGNING` to `1`, `true`,
+or `yes` (case-insensitive) to skip signing unconditionally (useful in CI pipelines where
+signing credentials are absent).
 
 ## Passing Additional Parameters to SignPath
 
@@ -115,4 +138,8 @@ request (e.g. build number, Git commit SHA):
 ## Complete Goal Reference
 
 See the [codesign:sign goal documentation](./sign-mojo.html) for the full list of
-configuration parameters.
+configuration parameters and their defaults.
+
+For a narrative guide covering authentication, file selection, output modes, retry
+behaviour, failure conditions, and troubleshooting, see the project
+[USAGE.md](https://github.com/eclipse-csi/codesign-maven-plugin/blob/main/USAGE.md).
