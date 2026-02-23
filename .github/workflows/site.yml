@@ -48,7 +48,7 @@ jobs:
 
       - name: Build Maven site and API Javadoc
         run: |
-          ./mvnw -B -ntp -DskipTests -pl codesign-maven-plugin --also-make package site &&
+          ./mvnw -B -ntp -DskipTests -pl codesign-maven-plugin --also-make package site
           ./mvnw -B -ntp -DskipTests -pl codesign-api javadoc:javadoc
 
       # Check out the accumulated gh-pages content so we can overlay new files
@@ -79,7 +79,7 @@ jobs:
             > target/gh-pages-store/snapshot/.version
           rm -rf target/gh-pages-store/apidocs/snapshot
           mkdir -p target/gh-pages-store/apidocs/snapshot
-          cp -r codesign-api/target/site/apidocs/. target/gh-pages-store/apidocs/snapshot/
+          cp -r codesign-api/target/reports/apidocs/. target/gh-pages-store/apidocs/snapshot/
           cp target/gh-pages-store/snapshot/.version target/gh-pages-store/apidocs/snapshot/.version
 
       - name: Update release content
@@ -94,8 +94,8 @@ jobs:
           echo "$version" > target/gh-pages-store/latest/.version
           rm -rf "target/gh-pages-store/apidocs/${version}" target/gh-pages-store/apidocs/latest
           mkdir -p "target/gh-pages-store/apidocs/${version}" target/gh-pages-store/apidocs/latest
-          cp -r codesign-api/target/site/apidocs/. "target/gh-pages-store/apidocs/${version}/"
-          cp -r codesign-api/target/site/apidocs/. target/gh-pages-store/apidocs/latest/
+          cp -r codesign-api/target/reports/apidocs/. "target/gh-pages-store/apidocs/${version}/"
+          cp -r codesign-api/target/reports/apidocs/. target/gh-pages-store/apidocs/latest/
           echo "$version" > "target/gh-pages-store/apidocs/${version}/.version"
           echo "$version" > target/gh-pages-store/apidocs/latest/.version
 
