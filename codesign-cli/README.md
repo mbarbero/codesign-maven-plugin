@@ -57,7 +57,7 @@ Provide the SignPath API token via one of the following (first match wins):
 
 ## Usage
 
-```
+```text
 codesign sign [OPTIONS] <file> [<file>...]
 ```
 
@@ -113,6 +113,7 @@ codesign sign target/*.jar \
 ```
 
 > On Windows (PowerShell), expand globs explicitly:
+>
 > ```powershell
 > $files = Get-ChildItem target\*.jar | ForEach-Object { $_.FullName }
 > codesign sign @files --organization-id ... --output-dir signed\

@@ -8,33 +8,33 @@ The Eclipse CSI Codesign Maven Plugin is a Maven plugin that signs
 artifacts via the SignPath REST API. It is part of the Eclipse Common
 Security Infrastructure (CSI) project.
 
-- https://projects.eclipse.org/projects/technology.csi
+- <https://projects.eclipse.org/projects/technology.csi>
 
 ## Developer Resources
 
 Information regarding source code management, builds, coding standards,
 and more.
 
-- https://projects.eclipse.org/projects/technology.csi/developer
+- <https://projects.eclipse.org/projects/technology.csi/developer>
 
 The project maintains the following source code repository:
 
-- https://github.com/eclipse-csi/codesign-maven-plugin
+- <https://github.com/eclipse-csi/codesign-maven-plugin>
 
 ## Eclipse Development Process
 
 This Eclipse Foundation open project is governed by the Eclipse Foundation
 Development Process and operates under the terms of the Eclipse IP Policy.
 
-- https://eclipse.org/projects/dev_process
-- https://www.eclipse.org/org/documents/Eclipse_IP_Policy.pdf
+- <https://eclipse.org/projects/dev_process>
+- <https://www.eclipse.org/org/documents/Eclipse_IP_Policy.pdf>
 
 ## Eclipse Contributor Agreement
 
 In order to be able to contribute to Eclipse Foundation projects you
 must electronically sign the Eclipse Contributor Agreement (ECA):
 
-- https://www.eclipse.org/legal/ECA.php
+- <https://www.eclipse.org/legal/ECA.php>
 
 The ECA provides the Eclipse Foundation with a permanent record that you
 agree that each of your contributions will comply with the commitments
@@ -45,7 +45,7 @@ sign-off on your contributions.
 
 For more information, please see the Eclipse Committer Handbook:
 
-- https://www.eclipse.org/projects/handbook/#resources-commit
+- <https://www.eclipse.org/projects/handbook/#resources-commit>
 
 ## Development Setup
 
@@ -54,7 +54,7 @@ For more information, please see the Eclipse Committer Handbook:
 Install the following tools **before** running any build or quality check:
 
 | Tool | Version | Required for |
-|---|---|---|
+| --- | --- | --- |
 | **Java JDK** | 21+ | Maven wrapper (`./mvnw`), `unit-tests` and `integration-tests` git hooks (`language: system`), `pretty-format-java` Java formatter |
 | **prek** | any | Running Git hooks (see below) |
 | **poutine** | any | `poutine` git hook — workflow security analysis |
@@ -73,7 +73,7 @@ binary for workflow security analysis.
 Install prek using your preferred method:
 
 | Platform | Command |
-|---|---|
+| --- | --- |
 | Homebrew (macOS/Linux) | `brew install prek` |
 | uv | `uv tool install prek` |
 | pip / pipx | `pip install prek` |
@@ -98,6 +98,7 @@ This installs two hooks driven by `.pre-commit-config.yaml`:
   - `actionlint` and YAML validation for GitHub workflows
   - `ruff`/`ruff-format` for Python scripts under `.github/scripts`
   - `google-java-format` (via `pretty-format-java`) for Java sources under `src/`
+  - `markdownlint-cli` for Markdown files (configured via `.markdownlint.yaml`)
   - the local POM consistency check and Maven unit tests
   on every `git commit`.
 - **pre-push** — runs the Maven integration tests on every `git push`.
@@ -108,7 +109,7 @@ Some quality checks and build profiles require tools to be installed on your
 system:
 
 | Tool | Purpose | Installation |
-|---|---|---|
+| --- | --- | --- |
 | **poutine** | Workflow security analysis (run by `pre-commit`) | `brew install boostsecurityio/tap/poutine` |
 | **cdxgen** | GitHub Actions SBOM generation (used in `generate-sbom` profile) | Requires Node.js; `npm install -g @cyclonedx/cdxgen` |
 | **cyclonedx-cli** | SBOM merging (used in `generate-sbom` profile) | `brew install cyclonedx-cli` |
@@ -127,17 +128,17 @@ uv run --with defusedxml python3 .github/scripts/generate-site-index.py
 ### Pull request checks
 
 CI also runs the same pre-commit checks on pull requests. In addition,
-reviewdog posts granular inline comments/suggestions for workflow and
-Python lint findings.
+reviewdog posts granular inline comments/suggestions for workflow, Python,
+and Markdown lint findings.
 
 ## Contact
 
 Contact the project developers via the project's "dev" list:
 
-- https://accounts.eclipse.org/mailing-list/csi-dev
+- <https://accounts.eclipse.org/mailing-list/csi-dev>
 
 ## Issues
 
 For bug reports and feature requests, please use GitHub Issues:
 
-- https://github.com/eclipse-csi/codesign-maven-plugin/issues
+- <https://github.com/eclipse-csi/codesign-maven-plugin/issues>
