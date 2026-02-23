@@ -34,6 +34,30 @@ ALL_RELEASES_SECTION = """\
 
 RELEASE_ITEM = '      <li><a href="{v}/">v{v}</a></li>'
 
+APIDOCS_LATEST_SECTION = """\
+  <div class="card">
+    <h2>API Javadoc &ndash; Latest Release</h2>
+    <p>Javadoc for the most recent stable release (v{version}).</p>
+    <a class="big" href="apidocs/latest/">Latest API Docs &#8594;</a>
+  </div>"""
+
+APIDOCS_SNAPSHOT_SECTION = """\
+  <div class="card">
+    <h2>API Javadoc &ndash; Snapshot</h2>
+    <p>Javadoc built from the <code>main</code> branch ({version}, may be unstable).</p>
+    <a class="big snap" href="apidocs/snapshot/">Snapshot API Docs &#8594;</a>
+  </div>"""
+
+APIDOCS_ALL_RELEASES_SECTION = """\
+  <div class="card">
+    <h2>API Javadoc &ndash; All Releases</h2>
+    <ul>
+{items}
+    </ul>
+  </div>"""
+
+APIDOCS_RELEASE_ITEM = '      <li><a href="apidocs/{v}/">v{v}</a></li>'
+
 
 def version_key(v):
     return tuple((0, int(x)) if x.isdigit() else (1, x) for x in re.split(r"[.\-]", v))
@@ -73,6 +97,28 @@ if os.path.isdir(os.path.join(STORE, "snapshot")):
 if versions:
     items = "\n".join(RELEASE_ITEM.format(v=v) for v in versions)
     sections.append(ALL_RELEASES_SECTION.format(items=items))
+
+apidocs_dir = os.path.join(STORE, "apidocs")
+if os.path.isdir(apidocs_dir):
+    apidocs_versions = sorted(
+        [e.name for e in os.scandir(apidocs_dir) if e.is_dir() and re.match(r"^\d", e.name)],
+        key=version_key,
+        reverse=True,
+    )
+else:
+    apidocs_versions = []
+
+if os.path.isdir(os.path.join(apidocs_dir, "latest")):
+    latest_version = read_stored_version("apidocs/latest") or (apidocs_versions[0] if apidocs_versions else "")
+    sections.append(APIDOCS_LATEST_SECTION.format(version=latest_version))
+
+if os.path.isdir(os.path.join(apidocs_dir, "snapshot")):
+    snapshot_version = read_stored_version("apidocs/snapshot") or ""
+    sections.append(APIDOCS_SNAPSHOT_SECTION.format(version=snapshot_version))
+
+if apidocs_versions:
+    items = "\n".join(APIDOCS_RELEASE_ITEM.format(v=v) for v in apidocs_versions)
+    sections.append(APIDOCS_ALL_RELEASES_SECTION.format(items=items))
 
 with open(os.path.join(SCRIPT_DIR, "site-index-template.html")) as f:
     template = Template(f.read())
