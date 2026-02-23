@@ -11,8 +11,6 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      - id: check-yaml
-        files: ^\.github/workflows/.*\.(yml|yaml)$
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
@@ -36,7 +34,7 @@ repos:
     hooks:
       - id: pretty-format-java
         args: [--autofix]
-        files: ^src/.*\.java$
+        files: (^|/)src/.*\.java$
 
   - repo: local
     hooks:
@@ -62,7 +60,7 @@ repos:
         language: system
         entry: ./mvnw
         args: [-B, -ntp, -P!integration-tests, test]
-        files: ^src/|pom\.xml$
+        files: (^|/)src/|pom\.xml$
         pass_filenames: false
 
       - id: integration-tests
@@ -71,6 +69,6 @@ repos:
         entry: ./mvnw
         # -DskipTests skips surefire unit tests (already run at pre-commit stage)
         args: [-B, -ntp, -DskipTests, -Pintegration-tests, verify]
-        files: ^src/|pom\.xml$
+        files: (^|/)src/|pom\.xml$
         pass_filenames: false
         stages: [pre-push]

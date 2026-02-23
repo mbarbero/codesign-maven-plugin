@@ -93,7 +93,10 @@ jobs:
           # poutine requires a system binary not available on ubuntu-latest;
           # it has a dedicated job in ci-guardrails.yml.
           # unit-tests runs Maven and is covered by the ci.yml workflow.
-          SKIP: poutine,unit-tests
+          # actionlint/ruff/ruff-format have dedicated reviewdog jobs above.
+          # zizmor has a dedicated job in ci-guardrails.yml (with SARIF upload).
+          # check-pom-consistency has a dedicated job in ci-guardrails.yml.
+          SKIP: poutine,unit-tests,actionlint,ruff,ruff-format,zizmor,check-pom-consistency
         run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
