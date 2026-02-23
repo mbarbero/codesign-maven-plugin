@@ -53,6 +53,8 @@
 
     <project.build.outputTimestamp>2025-06-01T00:00:00Z</project.build.outputTimestamp>
 
+    <sigstore.skip>true</sigstore.skip>
+
     <maven.version>3.9.12</maven.version>
     <okhttp.version>5.3.2</okhttp.version>
     <picocli.version>4.7.7</picocli.version>
@@ -122,6 +124,11 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>dev.sigstore</groupId>
+          <artifactId>sigstore-maven-plugin</artifactId>
+          <version>2.0.0</version>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -247,6 +254,21 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
       <plugin>
+        <groupId>dev.sigstore</groupId>
+        <artifactId>sigstore-maven-plugin</artifactId>
+        <configuration>
+          <skip>${sigstore.skip}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>sign</id>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
@@ -324,6 +346,15 @@
                 <armored>true</armored>
               </pgp>
             </signing>
+            <catalog>
+              <github>
+                <active>RELEASE</active>
+                <attestationName>{{projectName}}-{{projectVersion}}</attestationName>
+                <artifacts>true</artifacts>
+                <files>true</files>
+                <deployables>true</deployables>
+              </github>
+            </catalog>
             <deploy>
               <maven>
                 <mavenCentral>

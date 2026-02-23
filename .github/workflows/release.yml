@@ -27,6 +27,8 @@ jobs:
 
     permissions:
       contents: write # needed to create GitHub release and upload artifacts
+      id-token: write # needed for OIDC-based Sigstore keyless signing and SLSA attestation
+      attestations: write # needed to create SLSA build provenance attestations
 
     steps:
       - name: Harden Runner
@@ -58,7 +60,7 @@ jobs:
           chmod +x /usr/local/bin/cyclonedx
 
       - name: Build release artifacts
-        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release clean verify
+        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false clean verify
 
       - name: Run JReleaser
         env:
@@ -75,6 +77,15 @@ jobs:
             extra_args+=("-Djreleaser.dry.run=true")
           fi
           ./mvnw -B -ntp -DskipTests jreleaser:full-release "${extra_args[@]}"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
+        if: ${{ !inputs.dry-run }}
+        with:
+          subject-path: |
+            codesign-api/target/staging-deploy/**/*.jar
+            codesign-maven-plugin/target/staging-deploy/**/*.jar
+            cli/target/staging-deploy/**/*.jar
 
   native-binaries:
     name: Native binary (${{ matrix.platform }})
