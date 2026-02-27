@@ -304,6 +304,13 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.kordamp.maven</groupId>
+            <artifactId>pomchecker-enforcer-rules</artifactId>
+            <version>1.15.0</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>enforce-build-environment</id>
@@ -502,6 +509,25 @@
       </properties>
       <build>
         <defaultGoal>deploy</defaultGoal>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>enforce-maven-central-requirements</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <checkMavenCentral implementation="org.kordamp.maven.enforcer.checker.CheckMavenCentral"/>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>
