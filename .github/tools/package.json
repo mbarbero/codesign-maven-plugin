@@ -1,0 +1,7 @@
+{
+  "name": "github-workflow-tools",
+  "private": true,
+  "dependencies": {
+    "@cyclonedx/cdxgen": "11.0.0"
+  }
+}

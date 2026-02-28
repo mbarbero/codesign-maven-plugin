@@ -2,8 +2,11 @@ name: Native Binaries
 
 on:
   push:
-    tags:
+    branches:
+      - '**'
+    tags-ignore:
       - 'v*'
+  pull_request:
   workflow_dispatch:
 
 concurrency:

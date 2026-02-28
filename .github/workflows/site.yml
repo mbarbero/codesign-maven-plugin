@@ -46,6 +46,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
       - name: Build Maven site, API Javadoc, and CLI man page
         run: |
           ./mvnw -B -ntp -DskipTests -pl maven-plugin --also-make package site
@@ -101,7 +106,7 @@ jobs:
           echo "$version" > target/gh-pages-store/latest/.version
 
       - name: Install Python dependencies
-        run: pip install defusedxml
+        run: pip install -r .github/requirements/python-common.txt
 
       - name: Generate root index page
         run: python3 .github/scripts/generate-site-index.py
@@ -131,7 +136,8 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "chore: update site for ${GITHUB_REF_NAME}"
-            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" 2>/dev/null \
-              || git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-            git push origin gh-pages
+            git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git" 2>/dev/null \
+              || git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+            auth_header=$(printf "x-access-token:%s" "${GITHUB_TOKEN}" | base64)
+            git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth_header}" push origin gh-pages
           fi

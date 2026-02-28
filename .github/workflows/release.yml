@@ -6,11 +6,14 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
-      dry-run:
-        description: Run JReleaser in dry-run mode
-        required: false
-        default: false
-        type: boolean
+      mode:
+        description: Release mode (dry-run validates release flow without publishing)
+        required: true
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - publish
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,6 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: release
+    env:
+      CYCLONEDX_CLI_VERSION: v0.29.2
 
     permissions:
       contents: write # needed to create GitHub release and upload artifacts
@@ -48,21 +53,65 @@ jobs:
           java-version: '21'
 
       - name: Set up cdxgen
-        run: npm install -g @cyclonedx/cdxgen
+        run: |
+          npm install --prefix .github/tools --no-fund --no-audit
+          echo "${GITHUB_WORKSPACE}/.github/tools/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Set up CycloneDX CLI
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version=$(gh release view --repo CycloneDX/cyclonedx-cli --json tagName --jq .tagName)
-          curl -fsSL "https://github.com/CycloneDX/cyclonedx-cli/releases/download/${version}/cyclonedx-linux-x64" \
-            -o /usr/local/bin/cyclonedx
+          set -euo pipefail
+          repo="CycloneDX/cyclonedx-cli"
+          asset_name="cyclonedx-linux-x64"
+
+          digest="$(
+            gh api "repos/${repo}/releases/tags/${CYCLONEDX_CLI_VERSION}" \
+              --jq ".assets[] | select(.name == \"${asset_name}\") | .digest"
+          )"
+          if [ -z "${digest}" ] || [ "${digest}" = "null" ]; then
+            echo "::error::Could not locate digest for ${asset_name} in ${repo} ${CYCLONEDX_CLI_VERSION}"
+            exit 1
+          fi
+          case "${digest}" in
+            sha256:*) expected_sha="${digest#sha256:}" ;;
+            *)
+              echo "::error::Unsupported digest format: ${digest}"
+              exit 1
+              ;;
+          esac
+
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "${tmpdir}"' EXIT
+          gh release download "${CYCLONEDX_CLI_VERSION}" --repo "${repo}" --pattern "${asset_name}" --output "${tmpdir}/${asset_name}"
+
+          actual_sha="$(sha256sum "${tmpdir}/${asset_name}" | awk '{print tolower($1)}')"
+          if [ "${actual_sha}" != "${expected_sha}" ]; then
+            echo "::error::Checksum verification failed for ${asset_name}"
+            echo "Expected: ${expected_sha}"
+            echo "Actual:   ${actual_sha}"
+            exit 1
+          fi
+
+          install -m 0755 "${tmpdir}/${asset_name}" /usr/local/bin/cyclonedx
           chmod +x /usr/local/bin/cyclonedx
 
-      - name: Build release artifacts
+      - name: Validate publish dispatch is run on a tag
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'publish' && !startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          echo "::error::Publish mode requires a tag ref (refs/tags/v*). Dispatch this workflow from the release tag."
+          exit 1
+
+      - name: Build release artifacts (publish mode)
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish')) }}
         run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false clean deploy
 
+      - name: Build release artifacts (dry-run mode)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run' }}
+        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false clean verify
+
       - name: Run JReleaser
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run') || (startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish'))) }}
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVENCENTRAL_USERNAME }}
@@ -72,17 +121,17 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          DRY_RUN: ${{ inputs.dry-run }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'publish' }}
         run: |
           extra_args=()
-          if [ "$DRY_RUN" = "true" ]; then
+          if [ "$MODE" = "dry-run" ]; then
             extra_args+=("-Djreleaser.dry.run=true")
           fi
           ./mvnw -B -ntp -DskipTests jreleaser:full-release "${extra_args[@]}"
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
-        if: ${{ !inputs.dry-run }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish')) }}
         with:
           subject-path: |
             api/target/staging-deploy/**/*.jar
@@ -95,7 +144,7 @@ jobs:
   native-binaries:
     name: Native binary (${{ matrix.platform }})
     needs: release
-    if: ${{ !inputs.dry-run }}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish')) }}
     strategy:
       fail-fast: false
       matrix:
