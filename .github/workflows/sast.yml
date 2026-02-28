@@ -51,8 +51,6 @@ jobs:
     name: Analyze (Opengrep)
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    env:
-      OPENGREP_VERSION: v1.9.0
 
     permissions:
       security-events: write # Required to upload SARIF results to GitHub code scanning.
@@ -69,10 +67,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Load pinned tool versions
+        id: versions
+        run: |
+          opengrep="$(jq -r '.opengrep' .github/tools/versions.json)"
+          echo "opengrep=${opengrep}" >> "$GITHUB_OUTPUT"
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
       - name: Download Opengrep
+        env:
+          OPENGREP_VERSION: ${{ steps.versions.outputs.opengrep }}
         run: |
           base="https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86"
           curl -fsSL "${base}"      -o opengrep

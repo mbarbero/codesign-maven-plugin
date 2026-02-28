@@ -1,0 +1,89 @@
+# We use this workflow (instead of Renovate) because Renovate requires installing a GitHub App,
+# while this repository prefers a built-in scheduled updater with no additional app installation.
+name: Update Pinned Tool Versions
+
+on:
+  schedule:
+    - cron: '19 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-versions:
+    name: Update workflow tool versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Update versions manifest
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cyclonedx_latest="$(gh api repos/CycloneDX/cyclonedx-cli/releases/latest --jq .tag_name)"
+          opengrep_latest="$(gh api repos/opengrep/opengrep/releases/latest --jq .tag_name)"
+          tmpfile="$(mktemp)"
+          jq \
+            --arg cyclonedx "${cyclonedx_latest}" \
+            --arg opengrep "${opengrep_latest}" \
+            '.cyclonedx_cli = $cyclonedx | .opengrep = $opengrep' \
+            .github/tools/versions.json > "${tmpfile}"
+          mv "${tmpfile}" .github/tools/versions.json
+
+          if git diff --quiet -- .github/tools/versions.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No updates found."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Updated versions:"
+            git --no-pager diff -- .github/tools/versions.json
+          fi
+
+      - name: Create or update pull request
+        if: ${{ steps.update.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="ci/update-pinned-tool-versions"
+          title="ci: update pinned workflow tool versions"
+          body_file="$(mktemp)"
+
+          cat > "${body_file}" <<'EOF'
+          Automated update of pinned workflow tool versions in `.github/tools/versions.json`.
+
+          This keeps workflow binaries current without requiring the Renovate GitHub App.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "${branch}"
+          git add .github/tools/versions.json
+          git commit -m "${title}"
+
+          auth_header="$(printf "x-access-token:%s" "${GH_TOKEN}" | base64)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth_header}" \
+            push --force-with-lease origin "${branch}"
+
+          if gh pr view "${branch}" --json number >/dev/null 2>&1; then
+            gh pr edit "${branch}" --title "${title}" --body-file "${body_file}"
+          else
+            gh pr create --base main --head "${branch}" --title "${title}" --body-file "${body_file}"
+          fi

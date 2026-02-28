@@ -17,8 +17,6 @@ jobs:
   build-and-test:
     name: All Tests
     runs-on: ubuntu-latest
-    env:
-      CYCLONEDX_CLI_VERSION: v0.29.2
 
     steps:
       - name: Harden Runner
@@ -30,6 +28,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+
+      - name: Load pinned tool versions
+        id: versions
+        run: |
+          cyclonedx_cli="$(jq -r '.cyclonedx_cli' .github/tools/versions.json)"
+          echo "cyclonedx_cli=${cyclonedx_cli}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Java
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -46,6 +50,7 @@ jobs:
       - name: Set up CycloneDX CLI
         env:
           GH_TOKEN: ${{ github.token }}
+          CYCLONEDX_CLI_VERSION: ${{ steps.versions.outputs.cyclonedx_cli }}
         run: |
           set -euo pipefail
           repo="CycloneDX/cyclonedx-cli"

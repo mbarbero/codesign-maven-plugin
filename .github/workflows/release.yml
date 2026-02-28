@@ -27,8 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: release
-    env:
-      CYCLONEDX_CLI_VERSION: v0.29.2
 
     permissions:
       contents: write # needed to create GitHub release and upload artifacts
@@ -46,6 +44,12 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Load pinned tool versions
+        id: versions
+        run: |
+          cyclonedx_cli="$(jq -r '.cyclonedx_cli' .github/tools/versions.json)"
+          echo "cyclonedx_cli=${cyclonedx_cli}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Java
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
@@ -60,6 +64,7 @@ jobs:
       - name: Set up CycloneDX CLI
         env:
           GH_TOKEN: ${{ github.token }}
+          CYCLONEDX_CLI_VERSION: ${{ steps.versions.outputs.cyclonedx_cli }}
         run: |
           set -euo pipefail
           repo="CycloneDX/cyclonedx-cli"
