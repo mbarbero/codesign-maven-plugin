@@ -58,7 +58,7 @@ jobs:
 
       - name: Set up cdxgen
         run: |
-          npm install --prefix .github/tools --no-fund --no-audit
+          npm ci --prefix .github/tools --no-fund --no-audit
           echo "${GITHUB_WORKSPACE}/.github/tools/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Set up CycloneDX CLI
@@ -109,11 +109,11 @@ jobs:
 
       - name: Build release artifacts (publish mode)
         if: ${{ startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish')) }}
-        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false clean deploy
+        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false -Daether.checksums.omitChecksumsForExtensions=.asc,.sigstore.json clean deploy
 
       - name: Build release artifacts (dry-run mode)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run' }}
-        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false clean verify
+        run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false -Daether.checksums.omitChecksumsForExtensions=.asc,.sigstore.json clean verify
 
       - name: Run JReleaser
         if: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run') || (startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish'))) }}

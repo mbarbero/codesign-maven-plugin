@@ -53,8 +53,11 @@ modes, failure conditions, and troubleshooting guidance, see **[USAGE.md](USAGE.
 ## Building
 
 ```shell
-# Full build (Maven plugin + CLI JVM JAR, all tests)
+# Default full build (Maven plugin + CLI JVM JAR, unit tests)
 ./mvnw clean verify
+
+# Full build with integration tests
+./mvnw clean verify -Pintegration-tests
 
 # Build the CLI JVM fat JAR only
 ./mvnw package -pl cli --also-make
@@ -105,13 +108,13 @@ workflow:
 
 ### Dry Run
 
-Use the manual workflow trigger and set `dry-run=true` to validate release
+Use the manual workflow trigger and set `mode=dry-run` to validate release
 configuration without publishing.
 
 ### Local Dry Run
 
 ```shell
-./mvnw -Prelease -DskipTests clean verify
+./mvnw -Prelease -DskipTests -Daether.checksums.omitChecksumsForExtensions=.asc,.sigstore.json clean verify
 ./mvnw -Prelease -Djreleaser.dry.run=true jreleaser:full-release
 ```
 

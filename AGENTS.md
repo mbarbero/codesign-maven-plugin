@@ -9,9 +9,9 @@ Eclipse CSI Codesign Maven Plugin — a Maven plugin that signs build artifacts 
 ## Build & Test Commands
 
 ```shell
-./mvnw clean verify                                      # Build all modules; runs unit + integration tests
+./mvnw clean verify                                      # Build all modules; unit tests only
 ./mvnw test                                              # Unit tests only (stops before integration-test phase)
-./mvnw -P'!integration-tests' verify                     # Verify without integration tests
+./mvnw -Pintegration-tests verify                        # Verify with integration tests
 ./mvnw test -Dtest=SignMojoTest                          # Run a single test class
 ./mvnw test -Dtest=SignMojoTest#testSignFiles            # Run a single test method
 ./mvnw verify -pl maven-plugin --also-make               # Plugin module (+ its api dependency)
@@ -24,10 +24,8 @@ Eclipse CSI Codesign Maven Plugin — a Maven plugin that signs build artifacts 
 Requires **Java 21+** and **Maven 3.9+** (enforced by `maven-enforcer-plugin`).
 The Maven wrapper (`./mvnw`) downloads Maven automatically; a JDK must already be on `PATH`.
 
-> **Integration tests run by default.** The `integration-tests` profile in
-> `maven-plugin/pom.xml` has `<activeByDefault>true</activeByDefault>`.
-> Running `./mvnw verify` at the root always runs them. Use `-P'!integration-tests'`
-> to skip.
+> **Integration tests are opt-in.** Running `./mvnw verify` does not run them.
+> Use `-Pintegration-tests` to enable plugin integration tests.
 
 ## Development Setup
 

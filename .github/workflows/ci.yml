@@ -44,7 +44,7 @@ jobs:
 
       - name: Set up cdxgen
         run: |
-          npm install --prefix .github/tools --no-fund --no-audit
+          npm ci --prefix .github/tools --no-fund --no-audit
           echo "${GITHUB_WORKSPACE}/.github/tools/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Set up CycloneDX CLI

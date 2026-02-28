@@ -120,9 +120,6 @@
     </profile>
     <profile>
       <id>integration-tests</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <properties>
         <!-- Default to empty so the invoker gets a no-op when JaCoCo is skipped
              (e.g. -Djacoco.skip=true). prepare-agent-integration overrides this. -->
@@ -330,32 +327,10 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <configuration>
-                  <attach>true</attach>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar-no-fork</goal>
-                </goals>
-                <configuration>
-                  <attach>true</attach>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
