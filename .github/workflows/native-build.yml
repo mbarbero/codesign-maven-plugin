@@ -17,59 +17,9 @@ permissions: {}
 
 jobs:
   native:
-    name: Build native (${{ matrix.platform }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux-x86_64
-            binary: codesign
-          - os: ubuntu-24.04-arm
-            platform: linux-aarch64
-            binary: codesign
-          - os: macos-latest
-            platform: macos-aarch64
-            binary: codesign
-          - os: macos-13
-            platform: macos-x86_64
-            binary: codesign
-          - os: windows-latest
-            platform: windows-x86_64
-            binary: codesign.exe
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
-
+    uses: ./.github/workflows/native-build-reusable.yml
     permissions:
       contents: read
-
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: Set up GraalVM
-        uses: graalvm/setup-graalvm@54b4f5a65c1a84b2fdfdc2078fe43df32819e4b1 # v1.4.5
-        with:
-          java-version: '21'
-          distribution: 'graalvm-community'
-          native-image-job-reports: 'true'
-
-      - name: Build native binary
-        shell: bash
-        run: ./mvnw -B -ntp -Pnative -pl cli --also-make -DskipTests package
-
-      - name: Upload native binary
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: codesign-${{ matrix.platform }}
-          path: cli/target/${{ matrix.binary }}
-          if-no-files-found: error
-          retention-days: 7
+    with:
+      publish-release: false
+      artifact-retention-days: 7
