@@ -1,0 +1,136 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+minimum_prek_version = "0.3.4"
+minimum_pre_commit_version = "4.5.0"
+default_install_hook_types = ["pre-commit", "pre-push"]
+
+[[repos]]
+repo = "https://github.com/zizmorcore/zizmor-pre-commit"
+rev = "b546b77c44c466a54a42af5499dcc0dcc1a3193f" # frozen: v1.22.0
+hooks = [
+  { id = "zizmor" },
+]
+
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "3e8a8703264a2f4a69428a0aa4dcb512790b2c8c" # frozen: v6.0.0
+hooks = [
+  { id = "check-merge-conflict" },
+  { id = "check-yaml" },
+  { id = "check-added-large-files" },
+  { id = "detect-private-key" },
+  { id = "end-of-file-fixer" },
+  { id = "trailing-whitespace" },
+  { id = "mixed-line-ending" },
+]
+
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "393031adb9afb225ee52ae2ccd7a5af5525e03e8" # frozen: v1.7.11
+hooks = [
+  { id = "actionlint", files = '^\.github/workflows/.*\.(yml|yaml)$' },
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "a27a2e47c7751b639d2b5badf0ef6ff11fee893f" # frozen: v0.15.4
+hooks = [
+  { id = "ruff", args = ["--fix"], files = '^\.github/scripts/.*\.py$' },
+  { id = "ruff-format", files = '^\.github/scripts/.*\.py$' },
+]
+
+[[repos]]
+repo = "https://github.com/igorshubovych/markdownlint-cli"
+rev = "76b3d32d3f4b965e1d6425253c59407420ae2c43" # frozen: v0.47.0
+hooks = [
+  { id = "markdownlint", args = ["--fix"] },
+]
+
+[[repos]]
+repo = "https://github.com/shellcheck-py/shellcheck-py"
+rev = "745eface02aef23e168a8afb6b5737818efbea95" # frozen: v0.11.0.1
+hooks = [
+  { id = "shellcheck", files = '^\.github/scripts/.*\.sh$' },
+]
+
+[[repos]]
+repo = "https://github.com/macisamuele/language-formatters-pre-commit-hooks"
+rev = "4380fbb73a154b5f5624794c1c78d9719ccc860f" # frozen: v2.16.0
+hooks = [
+  { id = "pretty-format-java", args = ["--autofix"], files = '(^|/)src/.*\.java$' },
+]
+
+[[repos]]
+repo = "https://github.com/Yelp/detect-secrets"
+rev = "01886c8a910c64595c47f186ca1ffc0b77fa5458" # frozen: v1.5.0
+hooks = [
+  { id = "detect-secrets", args = ["--disable-plugin", "HexHighEntropyString"] },
+]
+
+[[repos]]
+repo = "https://github.com/gitleaks/gitleaks"
+rev = "6eaad039603a4de39fddd1cf5f727391efe9974e" # frozen: v8.30.0
+hooks = [
+  { id = "gitleaks" },
+]
+
+[[repos]]
+repo = "https://github.com/trufflesecurity/trufflehog"
+rev = "041f07e9df901a1038a528e5525b0226d04dd5ea" # frozen: v3.93.6
+hooks = [
+  { id = "trufflehog", stages = ["manual"] },
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "check-pom-consistency",
+    name = "Check POM/dependabot consistency",
+    language = "python",
+    language_version = "python3",
+    additional_dependencies = ["defusedxml==0.7.1"],
+    entry = "python3 .github/scripts/check-pom-consistency.py",
+    files = '^pom\.xml$|^\.github/dependabot\.yml$',
+    pass_filenames = false,
+  },
+  {
+    id = "check-precommit-frozen",
+    name = "Check pre-commit frozen revisions",
+    language = "system",
+    entry = "python3 .github/scripts/check-precommit-frozen.py",
+    files = '^prek\.toml$',
+    pass_filenames = false,
+  },
+  {
+    id = "poutine",
+    name = "Analyze workflows (Poutine)",
+    language = "system",
+    entry = "poutine",
+    args = ["analyze_local", ".", "--format", "pretty"],
+    files = '^\.github/workflows/.*\.(yml|yaml)$',
+    pass_filenames = false,
+  },
+  {
+    id = "unit-tests",
+    name = "Unit tests",
+    language = "system",
+    entry = "./mvnw",
+    args = ["-B", "-ntp", "-P!integration-tests", "test"],
+    files = '^api/src/|^cli/src/|^maven-plugin/src/|(^|/)pom\.xml$',
+    pass_filenames = false,
+    stages = ["pre-push"],
+  },
+  {
+    id = "integration-tests",
+    name = "Integration tests",
+    language = "system",
+    entry = "./mvnw",
+    args = ["-B", "-ntp", "-DskipTests", "-Pintegration-tests", "verify"],
+    files = '^maven-plugin/src/.*\.java$|^maven-plugin/src/it/|^maven-plugin/pom\.xml$',
+    pass_filenames = false,
+    stages = ["pre-push"],
+  },
+]
