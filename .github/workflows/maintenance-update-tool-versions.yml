@@ -52,6 +52,7 @@ jobs:
             Automated update of pinned tool versions in:
 
             - `.github/tools/versions.json`
+            - `prek.toml` (`minimum_prek_version` synced from `.github/tools/pyproject.toml`)
             - `prek.toml` (`defusedxml` pin synced from `.github/tools/pyproject.toml`)
             - `prek.toml` (via `prek auto-update --freeze`)
 
