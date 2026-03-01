@@ -156,5 +156,3 @@ jobs:
     with:
       publish-release: true
       tag-name: ${{ github.ref_name }}
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

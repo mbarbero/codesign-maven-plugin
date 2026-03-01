@@ -17,10 +17,6 @@ on:
         required: false
         type: number
         default: 7
-    secrets:
-      GITHUB_TOKEN:
-        required: false
-
 jobs:
   native:
     name: Build native (${{ matrix.platform }})
@@ -37,7 +33,7 @@ jobs:
           - os: macos-latest
             platform: macos-aarch64
             binary: codesign
-          - os: macos-13
+          - os: macos-15-intel
             platform: macos-x86_64
             binary: codesign
           - os: windows-latest
@@ -88,7 +84,7 @@ jobs:
       - name: Upload binary to GitHub release
         if: ${{ inputs.publish-release }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag-name }}
           ASSET_NAME: ${{ steps.rename.outputs.asset }}
         shell: bash
