@@ -1,0 +1,67 @@
+name: Setup SBOM tools
+description: Install cdxgen and CycloneDX CLI using pinned versions
+inputs:
+  github-token:
+    description: Token used by gh CLI to read release metadata and download assets
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Load pinned CycloneDX CLI version
+      id: versions
+      shell: bash
+      run: |
+        cyclonedx_cli="$(jq -r '.cyclonedx_cli' .github/tools/versions.json)"
+        echo "cyclonedx_cli=${cyclonedx_cli}" >> "$GITHUB_OUTPUT"
+
+    - name: Set up cdxgen
+      shell: bash
+      run: |
+        npm ci --prefix .github/tools --no-fund --no-audit
+        cat > /usr/local/bin/cdxgen <<'EOF'
+        #!/usr/bin/env bash
+        set -euo pipefail
+        exec node "${GITHUB_WORKSPACE}/.github/tools/node_modules/@cyclonedx/cdxgen/bin/cdxgen.js" "$@"
+        EOF
+        chmod +x /usr/local/bin/cdxgen
+
+    - name: Set up CycloneDX CLI
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        CYCLONEDX_CLI_VERSION: ${{ steps.versions.outputs.cyclonedx_cli }}
+      run: |
+        set -euo pipefail
+        repo="CycloneDX/cyclonedx-cli"
+        asset_name="cyclonedx-linux-x64"
+
+        digest="$(
+          gh api "repos/${repo}/releases/tags/${CYCLONEDX_CLI_VERSION}" \
+            --jq ".assets[] | select(.name == \"${asset_name}\") | .digest"
+        )"
+        if [ -z "${digest}" ] || [ "${digest}" = "null" ]; then
+          echo "::error::Could not locate digest for ${asset_name} in ${repo} ${CYCLONEDX_CLI_VERSION}"
+          exit 1
+        fi
+        case "${digest}" in
+          sha256:*) expected_sha="${digest#sha256:}" ;;
+          *)
+            echo "::error::Unsupported digest format: ${digest}"
+            exit 1
+            ;;
+        esac
+
+        tmpdir="$(mktemp -d)"
+        trap 'rm -rf "${tmpdir}"' EXIT
+        gh release download "${CYCLONEDX_CLI_VERSION}" --repo "${repo}" --pattern "${asset_name}" --output "${tmpdir}/${asset_name}"
+
+        actual_sha="$(sha256sum "${tmpdir}/${asset_name}" | awk '{print tolower($1)}')"
+        if [ "${actual_sha}" != "${expected_sha}" ]; then
+          echo "::error::Checksum verification failed for ${asset_name}"
+          echo "Expected: ${expected_sha}"
+          echo "Actual:   ${actual_sha}"
+          exit 1
+        fi
+
+        install -m 0755 "${tmpdir}/${asset_name}" /usr/local/bin/cyclonedx
+        chmod +x /usr/local/bin/cyclonedx
