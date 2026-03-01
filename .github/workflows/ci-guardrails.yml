@@ -21,14 +21,12 @@ jobs:
       security-events: write # Required to create code scanning alerts
 
     steps:
-      - &harden_runner_step
-        name: Harden Runner
+      - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
-      - &checkout_repository_step
-        name: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
@@ -44,8 +42,15 @@ jobs:
       security-events: write # Required to create code scanning alerts
 
     steps:
-      - *harden_runner_step
-      - *checkout_repository_step
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Run poutine
         uses: boostsecurityio/poutine-action@84c0a0d32e8d57ae12651222be1eb15351429228 # v0.15.2
@@ -62,8 +67,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - *harden_runner_step
-      - *checkout_repository_step
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Load pinned tool versions
         id: versions
@@ -82,8 +94,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - *harden_runner_step
-      - *checkout_repository_step
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -103,8 +122,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - *harden_runner_step
-      - *checkout_repository_step
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Validate hook coverage mapping
         run: python3 .github/scripts/check-hook-coverage.py
@@ -114,8 +140,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - *harden_runner_step
-      - *checkout_repository_step
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Validate hook revisions are frozen
         run: python3 .github/scripts/check-hook-revisions-frozen.py
