@@ -79,11 +79,17 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Load pinned tool versions
+        id: versions
+        run: |
+          trufflehog="$(jq -r '.trufflehog' .github/tools/versions.json)"
+          echo "trufflehog=${trufflehog}" >> "$GITHUB_OUTPUT"
+
       - name: Run TruffleHog
         uses: trufflesecurity/trufflehog@041f07e9df901a1038a528e5525b0226d04dd5ea # v3.93.6
         with:
           extra_args: --results=verified,unknown
-          version: v3.93.6
+          version: ${{ steps.versions.outputs.trufflehog }}
 
   pom-consistency:
     name: Analyze (POM Consistency)
