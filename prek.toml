@@ -109,7 +109,7 @@ hooks = [
     language = "system",
     entry = "poutine",
     args = ["analyze_local", ".", "--format", "pretty"],
-    files = '^\.github/workflows/.*\.(yml|yaml)$',
+    files = '^\.github/workflows/.*\.ya?ml$|^\.github/actions/.*\.ya?ml$',
     pass_filenames = false,
   },
   {
