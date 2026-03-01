@@ -68,6 +68,16 @@ Python to install itself — but the hooks it drives require a Java JDK on
 the `PATH` (for Maven builds and the Java formatter) and the `poutine`
 binary for workflow security analysis.
 
+The hook config (`.pre-commit-config.yaml`) defines:
+
+- `minimum_prek_version` for local `prek` users (recommended path)
+- `minimum_pre_commit_version` for compatibility with CI/automation paths that
+  still invoke `pre-commit`
+
+If you run `pre-commit` directly, it may print a warning about
+`minimum_prek_version` being an unexpected key. This warning is expected and
+does not affect local development with `prek`.
+
 ### Installing prek
 
 Install prek using your preferred method:
@@ -95,13 +105,15 @@ This installs two hooks driven by `.pre-commit-config.yaml`:
 - **pre-commit** — runs:
   - [zizmor](https://github.com/woodruffw/zizmor) (GitHub Actions security linter)
   - [poutine](https://github.com/boostsecurityio/poutine) (Build pipeline security analyzer)
+  - `check-merge-conflict`, `check-yaml`, `check-added-large-files`,
+    `detect-private-key`, and line-ending/whitespace hygiene checks
   - `actionlint` and YAML validation for GitHub workflows
   - `ruff`/`ruff-format` for Python scripts under `.github/scripts`
   - `google-java-format` (via `pretty-format-java`) for Java sources under `src/`
   - `markdownlint-cli` for Markdown files (configured via `.markdownlint.yaml`)
-  - the local POM consistency check and Maven unit tests
+  - the local POM consistency check
   on every `git commit`.
-- **pre-push** — runs the Maven integration tests on every `git push`.
+- **pre-push** — runs Maven unit tests and integration tests on every `git push`.
 
 ### Additional Development Tools
 
@@ -130,6 +142,10 @@ uv run --with defusedxml python3 .github/scripts/generate-site-index.py
 CI also runs the same pre-commit checks on pull requests. In addition,
 reviewdog posts granular inline comments/suggestions for workflow, Python,
 and Markdown lint findings.
+
+Hook/tool revisions are updated automatically by
+`.github/workflows/update-tool-versions.yml`, which also runs
+`pre-commit autoupdate --freeze` to keep hook revisions immutable.
 
 ## Contact
 

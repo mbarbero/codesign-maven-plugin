@@ -1,27 +1,35 @@
+minimum_prek_version: "0.3.4"
+minimum_pre_commit_version: "4.5.0"
+
 default_install_hook_types:
   - pre-commit
   - pre-push
 
 repos:
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.22.0
+    rev: b546b77c44c466a54a42af5499dcc0dcc1a3193f  # frozen: v1.22.0
     hooks:
       - id: zizmor
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: detect-private-key
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: mixed-line-ending
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
+    rev: 393031adb9afb225ee52ae2ccd7a5af5525e03e8  # frozen: v1.7.11
     hooks:
       - id: actionlint
         files: ^\.github/workflows/.*\.(yml|yaml)$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0
+    rev: a27a2e47c7751b639d2b5badf0ef6ff11fee893f  # frozen: v0.15.4
     hooks:
       - id: ruff
         args: [--fix]
@@ -30,13 +38,13 @@ repos:
         files: ^\.github/scripts/.*\.py$
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: 76b3d32d3f4b965e1d6425253c59407420ae2c43  # frozen: v0.47.0
     hooks:
       - id: markdownlint
         args: [--fix]
 
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.16.0
+    rev: 4380fbb73a154b5f5624794c1c78d9719ccc860f  # frozen: v2.16.0
     hooks:
       - id: pretty-format-java
         args: [--autofix]
@@ -48,7 +56,7 @@ repos:
         name: Check POM/dependabot consistency
         language: python
         language_version: python3
-        additional_dependencies: [defusedxml]
+        additional_dependencies: [defusedxml==0.7.1]
         entry: python3 .github/scripts/check-pom-consistency.py
         files: ^pom\.xml$|^\.github/dependabot\.yml$
         pass_filenames: false
@@ -68,13 +76,15 @@ repos:
         args: [-B, -ntp, -P!integration-tests, test]
         files: (^|/)src/|pom\.xml$
         pass_filenames: false
+        # Keep commit-time feedback fast; run full Maven tests before push.
+        stages: [pre-push]
 
       - id: integration-tests
         name: Integration tests
         language: system
         entry: ./mvnw
-        # -DskipTests skips surefire unit tests (already run at pre-commit stage)
+        # -DskipTests skips surefire unit tests (already run by the pre-push unit-tests hook)
         args: [-B, -ntp, -DskipTests, -Pintegration-tests, verify]
-        files: (^|/)src/|pom\.xml$
+        files: ^maven-plugin/src/.*\.java$|^maven-plugin/src/it/|^maven-plugin/pom\.xml$
         pass_filenames: false
         stages: [pre-push]
