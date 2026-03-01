@@ -72,6 +72,41 @@ jobs:
           ruff check .github/scripts --output-format=rdjson \
             | reviewdog -f=rdjson -name="ruff" -reporter=github-pr-review -filter-mode=added -fail-level=error
 
+  reviewdog-shellcheck:
+    name: reviewdog (shellcheck)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required to post review comments
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: shellcheck with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          files="$(git ls-files '*.sh')"
+          if [[ -z "${files}" ]]; then
+            echo "No shell scripts to check."
+            exit 0
+          fi
+          shellcheck -f checkstyle "${files}" \
+            | reviewdog -f=checkstyle -name="shellcheck" -reporter=github-pr-review -filter-mode=added -fail-level=error
+
   reviewdog-pre-commit:
     name: reviewdog (pre-commit)
     runs-on: ubuntu-latest
@@ -111,11 +146,11 @@ jobs:
         env:
           # poutine has a dedicated job in ci-guardrails.yml.
           # unit-tests/integration-tests are pre-push hooks and covered by ci.yml.
-          # actionlint/ruff have dedicated reviewdog jobs above.
+          # actionlint/ruff/shellcheck have dedicated reviewdog jobs above.
           # zizmor has a dedicated job in ci-guardrails.yml (with SARIF upload).
-          # check-pom-consistency has a dedicated job in ci-guardrails.yml.
+          # check-pom-consistency/check-precommit-frozen have dedicated jobs in ci-guardrails.yml.
           # markdownlint has a dedicated reviewdog job above.
-          SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,zizmor,check-pom-consistency,markdownlint
+          SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,shellcheck,zizmor,check-pom-consistency,check-precommit-frozen,markdownlint
         run: prek run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
