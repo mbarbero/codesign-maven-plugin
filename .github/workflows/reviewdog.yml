@@ -52,24 +52,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: .github/requirements/reviewdog-ruff.txt
+      - name: Setup uv
+        uses: astral-sh/setup-uv@535dc3d469f6b4f0ec53f566c8b3a4e08f3ead2d # v6.6.0
 
       - name: Setup reviewdog
         uses: reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f # v1.5.0
-
-      - name: Install Ruff
-        run: pip install -r .github/requirements/reviewdog-ruff.txt
 
       - name: ruff with reviewdog
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ruff check .github/scripts --output-format=rdjson \
+          uv run --project .github/tools --group reviewdog-ruff ruff check .github/scripts --output-format=rdjson \
             | reviewdog -f=rdjson -name="ruff" -reporter=github-pr-review -filter-mode=added -fail-level=error
 
   reviewdog-shellcheck:
@@ -130,15 +123,8 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: .github/requirements/prek.txt
-
-      - name: Install prek
-        run: pip install -r .github/requirements/prek.txt
+      - name: Set up uv
+        uses: astral-sh/setup-uv@535dc3d469f6b4f0ec53f566c8b3a4e08f3ead2d # v6.6.0
 
       - name: Run prek
         id: prek
@@ -151,7 +137,7 @@ jobs:
           # check-pom-consistency/check-hook-revisions-frozen have dedicated jobs in ci-guardrails.yml.
           # markdownlint has a dedicated reviewdog job above.
           SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,shellcheck,zizmor,check-pom-consistency,check-hook-revisions-frozen,markdownlint
-        run: prek run --all-files --show-diff-on-failure
+        run: uv run --project .github/tools --group prek prek run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
         if: ${{ always() }}

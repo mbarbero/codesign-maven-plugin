@@ -11,10 +11,12 @@ fi
 cyclonedx_latest="$(gh api repos/CycloneDX/cyclonedx-cli/releases/latest --jq .tag_name)"
 opengrep_latest="$(gh api repos/opengrep/opengrep/releases/latest --jq .tag_name)"
 trufflehog_latest="$(gh api repos/trufflesecurity/trufflehog/releases/latest --jq .tag_name | sed 's/^v//')"
-defusedxml_version="$(awk -F'==' '/^defusedxml==/ {print $2; exit}' .github/requirements/python-common.txt)"
+defusedxml_version="$(
+  perl -ne 'if (/^\s*"defusedxml==([^"]+)"/) { print "$1\n"; exit }' .github/tools/pyproject.toml
+)"
 
 if [ -z "${defusedxml_version}" ]; then
-  echo "::error::Could not resolve defusedxml version from .github/requirements/python-common.txt"
+  echo "::error::Could not resolve defusedxml version from .github/tools/pyproject.toml"
   exit 1
 fi
 
@@ -28,7 +30,7 @@ jq \
   .github/tools/versions.json > "${tmpfile}"
 mv "${tmpfile}" .github/tools/versions.json
 
-# Keep the local hook dependency in sync with python-common.txt.
+# Keep the local hook dependency in sync with .github/tools/pyproject.toml.
 perl -0pi -e 's/"defusedxml==[^"]+"/"defusedxml=='"${defusedxml_version}"'"/g' prek.toml
 
 actual_defusedxml_dep="$(

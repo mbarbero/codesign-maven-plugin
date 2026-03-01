@@ -1,0 +1,16 @@
+[project]
+name = "github-workflow-python-tools"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+python-common = [
+  "defusedxml==0.7.1",
+]
+reviewdog-ruff = [
+  "ruff==0.15.2",
+]
+prek = [
+  "prek==0.3.4",
+]

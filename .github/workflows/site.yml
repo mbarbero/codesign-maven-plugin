@@ -46,10 +46,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@535dc3d469f6b4f0ec53f566c8b3a4e08f3ead2d # v6.6.0
         with:
-          python-version: "3.12"
+          # Disable caching in this publish/deploy workflow to avoid cache-poisoning risk.
+          enable-cache: false
 
       - name: Build Maven site, API Javadoc, and CLI man page
         run: |
@@ -84,7 +85,7 @@ jobs:
           cp -r maven-plugin/target/site/. target/gh-pages-store/snapshot/maven-plugin/
           cp -r api/target/reports/apidocs/. target/gh-pages-store/snapshot/api-javadoc/
           cp -r cli/target/generated-docs/. target/gh-pages-store/snapshot/cli-manpage/
-          python3 -c "import xml.etree.ElementTree as ET; ns={'m':'http://maven.apache.org/POM/4.0.0'}; print(ET.parse('pom.xml').getroot().find('m:version',ns).text)" \
+          ./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version \
             > target/gh-pages-store/snapshot/.version
 
       - name: Update release content
@@ -105,11 +106,8 @@ jobs:
           echo "$version" > "target/gh-pages-store/${version}/.version"
           echo "$version" > target/gh-pages-store/latest/.version
 
-      - name: Install Python dependencies
-        run: pip install -r .github/requirements/python-common.txt
-
       - name: Generate root index page
-        run: python3 .github/scripts/generate-site-index.py
+        run: uv run --project .github/tools --group python-common python3 .github/scripts/generate-site-index.py
 
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
