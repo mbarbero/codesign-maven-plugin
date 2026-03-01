@@ -10,6 +10,7 @@ fi
 # Resolve latest external tool versions and the canonical Python dependency pin.
 cyclonedx_latest="$(gh api repos/CycloneDX/cyclonedx-cli/releases/latest --jq .tag_name)"
 opengrep_latest="$(gh api repos/opengrep/opengrep/releases/latest --jq .tag_name)"
+trufflehog_latest="$(gh api repos/trufflesecurity/trufflehog/releases/latest --jq .tag_name | sed 's/^v//')"
 defusedxml_version="$(awk -F'==' '/^defusedxml==/ {print $2; exit}' .github/requirements/python-common.txt)"
 
 if [ -z "${defusedxml_version}" ]; then
@@ -22,7 +23,8 @@ tmpfile="$(mktemp)"
 jq \
   --arg cyclonedx "${cyclonedx_latest}" \
   --arg opengrep "${opengrep_latest}" \
-  '.cyclonedx_cli = $cyclonedx | .opengrep = $opengrep' \
+  --arg trufflehog "${trufflehog_latest}" \
+  '.cyclonedx_cli = $cyclonedx | .opengrep = $opengrep | .trufflehog = $trufflehog' \
   .github/tools/versions.json > "${tmpfile}"
 mv "${tmpfile}" .github/tools/versions.json
 
