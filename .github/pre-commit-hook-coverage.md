@@ -15,6 +15,7 @@ to avoid local-vs-CI drift.
 - `trailing-whitespace`
 - `mixed-line-ending`
 - `pretty-format-java`
+- `ruff-format`
 
 ## Hooks Covered by Dedicated CI Jobs
 
@@ -27,8 +28,6 @@ to avoid local-vs-CI drift.
 - `actionlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (actionlint)`)
 - `ruff`:
-  - `.github/workflows/reviewdog.yml` (`reviewdog (ruff)`)
-- `ruff-format`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (ruff)`)
 - `markdownlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (markdownlint)`)

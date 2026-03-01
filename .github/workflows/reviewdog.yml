@@ -100,23 +100,23 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: .github/requirements/reviewdog-precommit.txt
+          cache-dependency-path: .github/requirements/prek.txt
 
-      - name: Install pre-commit
-        run: pip install -r .github/requirements/reviewdog-precommit.txt
+      - name: Install prek
+        run: pip install -r .github/requirements/prek.txt
 
-      - name: Run pre-commit
+      - name: Run prek
         id: precommit
         continue-on-error: true
         env:
           # poutine has a dedicated job in ci-guardrails.yml.
           # unit-tests/integration-tests are pre-push hooks and covered by ci.yml.
-          # actionlint/ruff/ruff-format have dedicated reviewdog jobs above.
+          # actionlint/ruff have dedicated reviewdog jobs above.
           # zizmor has a dedicated job in ci-guardrails.yml (with SARIF upload).
           # check-pom-consistency has a dedicated job in ci-guardrails.yml.
           # markdownlint has a dedicated reviewdog job above.
-          SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,ruff-format,zizmor,check-pom-consistency,markdownlint
-        run: pre-commit run --all-files --show-diff-on-failure
+          SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,zizmor,check-pom-consistency,markdownlint
+        run: prek run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
         if: ${{ always() }}
