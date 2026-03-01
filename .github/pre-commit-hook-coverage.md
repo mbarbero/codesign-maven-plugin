@@ -25,10 +25,14 @@ to avoid local-vs-CI drift.
   - `.github/workflows/ci-guardrails.yml` (`Analyze (Poutine)`)
 - `check-pom-consistency`:
   - `.github/workflows/ci-guardrails.yml` (`Analyze (POM Consistency)`)
+- `check-precommit-frozen`:
+  - `.github/workflows/ci-guardrails.yml` (`Validate Pre-commit Frozen Revisions`)
 - `actionlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (actionlint)`)
 - `ruff`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (ruff)`)
+- `shellcheck`:
+  - `.github/workflows/reviewdog.yml` (`reviewdog (shellcheck)`)
 - `markdownlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (markdownlint)`)
 - `unit-tests`:
