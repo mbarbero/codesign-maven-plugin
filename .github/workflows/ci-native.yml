@@ -17,7 +17,7 @@ permissions: {}
 
 jobs:
   native:
-    uses: ./.github/workflows/native-build-reusable.yml
+    uses: ./.github/workflows/reusable-native-build.yml
     permissions:
       contents: read
     with:
