@@ -160,7 +160,7 @@ The original `app.jar` is unchanged; `app-signed.jar` contains the signed binary
 Run signing from the command line without modifying your `pom.xml`:
 
 ```shell
-mvn org.eclipse.csi:codesign-maven-plugin:sign \
+mvn org.eclipse.csi:codesign-maven-plugin:codesign \
   -Dcsi.codesign.organizationId=my-org \
   -Dcsi.codesign.projectId=my-product \
   -Dcsi.codesign.signingPolicy=release-signing
@@ -185,7 +185,7 @@ Configure the plugin in `pom.xml` to sign files automatically during `package`:
           <id>sign-binaries</id>
           <phase>package</phase>
           <goals>
-            <goal>sign</goal>
+            <goal>codesign</goal>
           </goals>
           <configuration>
             <!-- Required SignPath coordinates -->

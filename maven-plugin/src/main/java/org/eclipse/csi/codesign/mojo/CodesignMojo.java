@@ -52,8 +52,8 @@ import org.eclipse.csi.codesign.SigningWorkflow;
  * <p>API authentication is resolved from plugin configuration, Maven {@code settings.xml}, or the
  * {@code CSI_CODESIGN_API_TOKEN} environment variable.
  */
-@Mojo(name = "sign", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SignMojo extends AbstractMojo {
+@Mojo(name = "codesign", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
+public class CodesignMojo extends AbstractMojo {
 
   private static final String CSI_CODESIGN_API_TOKEN = "CSI_CODESIGN_API_TOKEN";
   private static final String CSI_CODESIGN_SKIP_SIGNING = "CSI_CODESIGN_SKIP_SIGNING";
@@ -272,7 +272,7 @@ public class SignMojo extends AbstractMojo {
    * @param settingsDecrypter component used to decrypt server credentials from {@code settings.xml}
    */
   @Inject
-  public SignMojo(SettingsDecrypter settingsDecrypter) {
+  public CodesignMojo(SettingsDecrypter settingsDecrypter) {
     this.settingsDecrypter = settingsDecrypter;
   }
 
@@ -599,5 +599,21 @@ public class SignMojo extends AbstractMojo {
       }
     }
     return matchers;
+  }
+
+  /**
+   * Tri-state enum controlling whether the Maven project's main artifact is included in signing.
+   *
+   * <ul>
+   *   <li>{@link #AUTO} enables signing for packaging types that produce signable binary artifacts
+   *       and disables it otherwise.
+   *   <li>{@link #TRUE} always includes the project artifact.
+   *   <li>{@link #FALSE} never includes the project artifact.
+   * </ul>
+   */
+  private static enum SignProjectArtifact {
+    AUTO,
+    TRUE,
+    FALSE
   }
 }

@@ -38,7 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class SignMojoTest {
+class CodesignMojoTest {
 
   private static final String CSI_CODESIGN_API_TOKEN = "CSI_CODESIGN_API_TOKEN";
   private static final String CSI_CODESIGN_SKIP_SIGNING = "CSI_CODESIGN_SKIP_SIGNING";
@@ -108,8 +108,8 @@ class SignMojoTest {
     server.shutdown();
   }
 
-  private SignMojo createMojo() throws Exception {
-    SignMojo mojo = new SignMojo(null);
+  private CodesignMojo createMojo() throws Exception {
+    CodesignMojo mojo = new CodesignMojo(null);
     setField(mojo, "organizationId", "test-org");
     setField(mojo, "apiToken", "test-token");
     setField(mojo, "projectId", "my-project");
@@ -144,7 +144,7 @@ class SignMojoTest {
 
   @Test
   void skipExecution() throws Exception {
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "skip", true);
     assertDoesNotThrow(() -> mojo.execute());
     assertEquals(0, server.getRequestCount());
@@ -152,7 +152,7 @@ class SignMojoTest {
 
   @Test
   void skipExecutionViaSkipSigningParameter() throws Exception {
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "skipSigning", true);
     assertDoesNotThrow(() -> mojo.execute());
     assertEquals(0, server.getRequestCount());
@@ -160,8 +160,8 @@ class SignMojoTest {
 
   @Test
   void skipExecutionViaSkipSigningEnvironmentVariable() {
-    SignMojo mojo =
-        new SignMojo(null) {
+    CodesignMojo mojo =
+        new CodesignMojo(null) {
           @Override
           String getEnvironmentVariable(String name) {
             if (CSI_CODESIGN_SKIP_SIGNING.equals(name)) {
@@ -177,7 +177,7 @@ class SignMojoTest {
 
   @Test
   void noFilesMatched() throws Exception {
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     assertDoesNotThrow(() -> mojo.execute());
     assertEquals(0, server.getRequestCount());
@@ -185,7 +185,7 @@ class SignMojoTest {
 
   @Test
   void failsWhenNoFilesFoundAndFailOnNoFilesFoundIsTrue() throws Exception {
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "failOnNoFilesFound", true);
     assertThrows(MojoFailureException.class, () -> mojo.execute());
@@ -239,7 +239,7 @@ class SignMojoTest {
                     .formatted(attachedSignedUrl)));
     server.enqueue(new MockResponse().setResponseCode(200).setBody("signed-attached"));
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "project", createProjectWithArtifacts(mainArtifact, attachedArtifact));
     setField(mojo, "signProjectArtifact", "true");
@@ -259,7 +259,7 @@ class SignMojoTest {
     Files.writeString(mainArtifact, "unsigned-main");
     Files.writeString(attachedArtifact, "unsigned-attached");
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "project", createProjectWithArtifacts(mainArtifact, attachedArtifact));
     setField(mojo, "signProjectArtifact", "false");
@@ -297,7 +297,7 @@ class SignMojoTest {
                       .formatted(signedUrl)));
       server.enqueue(new MockResponse().setResponseCode(200).setBody("signed-" + packaging));
 
-      SignMojo mojo = createMojo();
+      CodesignMojo mojo = createMojo();
       setField(mojo, "signProjectArtifact", "auto");
       setField(mojo, "includes", new String[] {"*.nonexistent"});
       setField(mojo, "project", createProjectWithPackaging(artifact, packaging));
@@ -316,7 +316,7 @@ class SignMojoTest {
     Path artifact = tempDir.resolve("pom-artifact.pom");
     Files.writeString(artifact, "<project/>");
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "signProjectArtifact", "auto");
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "project", createProjectWithPackaging(artifact, "pom"));
@@ -334,7 +334,7 @@ class SignMojoTest {
     Files.writeString(mainArtifact, "unsigned-main");
     Files.writeString(attachedArtifact, "unsigned-attached");
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "signProjectArtifact", "false");
     setField(mojo, "includes", new String[] {"*.nonexistent"});
     setField(mojo, "project", createProjectWithArtifacts(mainArtifact, attachedArtifact));
@@ -371,7 +371,7 @@ class SignMojoTest {
                       .formatted(signedUrl)));
       server.enqueue(new MockResponse().setResponseCode(200).setBody("signed"));
 
-      SignMojo mojo = createMojo();
+      CodesignMojo mojo = createMojo();
       setField(mojo, "signProjectArtifact", value);
       setField(mojo, "includes", new String[] {"*.nonexistent"});
       setField(mojo, "project", createProjectWithPackaging(artifact, "jar"));
@@ -382,7 +382,7 @@ class SignMojoTest {
 
   @Test
   void signProjectArtifactRejectsUnknownValue() throws Exception {
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "signProjectArtifact", "maybe");
     setField(mojo, "includes", new String[] {"*.nonexistent"});
 
@@ -434,7 +434,7 @@ class SignMojoTest {
     // Download signed artifact
     server.enqueue(new MockResponse().setResponseCode(200).setBody("signed-content"));
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"app.exe"});
 
     mojo.execute();
@@ -473,7 +473,7 @@ class SignMojoTest {
 
     server.enqueue(new MockResponse().setResponseCode(200).setBody("signed-jar-content"));
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"app.jar"});
     setField(mojo, "outputDirectory", outputDir.toString());
 
@@ -509,7 +509,7 @@ class SignMojoTest {
                 }
                 """));
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"denied.exe"});
 
     assertThrows(MojoFailureException.class, () -> mojo.execute());
@@ -522,7 +522,7 @@ class SignMojoTest {
 
     server.enqueue(new MockResponse().setResponseCode(403).setBody("Forbidden"));
 
-    SignMojo mojo = createMojo();
+    CodesignMojo mojo = createMojo();
     setField(mojo, "includes", new String[] {"error.exe"});
 
     assertThrows(MojoExecutionException.class, () -> mojo.execute());
@@ -530,19 +530,20 @@ class SignMojoTest {
 
   @Test
   void resolvesApiTokenFromSettingsXml() throws Exception {
-    SignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, "settings-token", null);
+    CodesignMojo mojo =
+        createMojoForTokenResolution(null, DEFAULT_SERVER_ID, "settings-token", null);
     assertEquals("settings-token", mojo.resolveApiToken());
   }
 
   @Test
   void resolvesApiTokenFromEnvironmentVariable() throws Exception {
-    SignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, "env-token");
+    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, "env-token");
     assertEquals("env-token", mojo.resolveApiToken());
   }
 
   @Test
   void apiTokenParameterTakesPriorityOverSettingsXml() throws Exception {
-    SignMojo mojo =
+    CodesignMojo mojo =
         createMojoForTokenResolution(
             "param-token", DEFAULT_SERVER_ID, "settings-token", "env-token");
     assertEquals("param-token", mojo.resolveApiToken());
@@ -550,14 +551,14 @@ class SignMojoTest {
 
   @Test
   void settingsXmlTakesPriorityOverEnvVar() throws Exception {
-    SignMojo mojo =
+    CodesignMojo mojo =
         createMojoForTokenResolution(null, DEFAULT_SERVER_ID, "settings-token", "env-token");
     assertEquals("settings-token", mojo.resolveApiToken());
   }
 
   @Test
   void failsWithClearErrorWhenNoTokenFound() throws Exception {
-    SignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, null);
+    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, null);
     MojoExecutionException ex =
         assertThrows(MojoExecutionException.class, () -> mojo.resolveApiToken());
     String message = ex.getMessage();
@@ -569,14 +570,15 @@ class SignMojoTest {
 
   @Test
   void resolvesApiTokenFromCustomServerId() throws Exception {
-    SignMojo mojo = createMojoForTokenResolution(null, "my-custom-server", "custom-token", null);
+    CodesignMojo mojo =
+        createMojoForTokenResolution(null, "my-custom-server", "custom-token", null);
     assertEquals("custom-token", mojo.resolveApiToken());
   }
 
-  private SignMojo createMojoForTokenResolution(
+  private CodesignMojo createMojoForTokenResolution(
       String apiToken, String serverId, String serverPassword, String envToken) throws Exception {
-    SignMojo mojo =
-        new SignMojo(null) {
+    CodesignMojo mojo =
+        new CodesignMojo(null) {
           @Override
           String getEnvironmentVariable(String name) {
             if (CSI_CODESIGN_API_TOKEN.equals(name)) {

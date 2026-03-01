@@ -40,7 +40,7 @@ Add the plugin to your Maven project:
 ## Usage
 
 ```shell
-mvn org.eclipse.csi:codesign-maven-plugin:sign \
+mvn org.eclipse.csi:codesign-maven-plugin:codesign \
   -Dcsi.codesign.organizationId=<ORG_ID> \
   -Dcsi.codesign.projectId=<PROJECT_SLUG> \
   -Dcsi.codesign.signingPolicy=<POLICY_SLUG> \

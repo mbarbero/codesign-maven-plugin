@@ -26,7 +26,7 @@
           <execution>
             <id>sign-exe</id>
             <goals>
-              <goal>sign</goal>
+              <goal>codesign</goal>
             </goals>
             <configuration>
               <organizationId>multi-exec-org</organizationId>
@@ -46,7 +46,7 @@
           <execution>
             <id>sign-jar</id>
             <goals>
-              <goal>sign</goal>
+              <goal>codesign</goal>
             </goals>
             <configuration>
               <organizationId>multi-exec-org</organizationId>
