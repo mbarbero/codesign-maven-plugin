@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
         with:
           egress-policy: audit
 
@@ -47,7 +47,7 @@ jobs:
           java-version: '21'
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@535dc3d469f6b4f0ec53f566c8b3a4e08f3ead2d # v6.6.0
+        uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
         with:
           # Disable caching in this publish/deploy workflow to avoid cache-poisoning risk.
           enable-cache: false
