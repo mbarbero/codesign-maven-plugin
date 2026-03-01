@@ -25,14 +25,12 @@ jobs:
       actions: read # Required so CodeQL actions can access workflow/action metadata.
 
     steps:
-      - &harden_runner_step
-        name: Harden Runner
+      - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
-      - &checkout_repository_step
-        name: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
@@ -59,8 +57,15 @@ jobs:
       actions: read          # Required so the upload-sarif action can access workflow metadata.
 
     steps:
-      - *harden_runner_step
-      - *checkout_repository_step
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Load pinned tool versions
         id: versions
