@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -34,6 +33,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
+import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
@@ -92,8 +92,8 @@ public class SignMojo extends AbstractMojo {
   @Parameter(property = "csi.codesign.serverId", defaultValue = "codesign")
   private String serverId;
 
-  @Parameter(defaultValue = "${session}", readonly = true)
-  private MavenSession session;
+  @Parameter(defaultValue = "${settings}", readonly = true)
+  private Settings settings;
 
   @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
@@ -425,8 +425,8 @@ public class SignMojo extends AbstractMojo {
       return apiToken;
     }
 
-    if (session != null) {
-      Server server = session.getSettings().getServer(serverId);
+    if (settings != null) {
+      Server server = settings.getServer(serverId);
       if (server != null) {
         String password = decryptServerPassword(server);
         if (password != null && !password.isBlank()) {

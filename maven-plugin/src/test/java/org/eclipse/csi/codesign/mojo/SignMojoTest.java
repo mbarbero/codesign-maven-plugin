@@ -15,22 +15,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.List;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.versioning.VersionRange;
-import org.apache.maven.execution.DefaultMavenExecutionRequest;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
@@ -45,6 +45,53 @@ class SignMojoTest {
   private static final String DEFAULT_SERVER_ID = "codesign";
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String APPLICATION_JSON = "application/json";
+  private static final MavenProjectHelper PROJECT_HELPER =
+      new MavenProjectHelper() {
+        @Override
+        public void attachArtifact(
+            MavenProject project, File artifactFile, String artifactClassifier) {
+          attachArtifact(project, "jar", artifactClassifier, artifactFile);
+        }
+
+        @Override
+        public void attachArtifact(MavenProject project, String artifactType, File artifactFile) {
+          attachArtifact(project, artifactType, null, artifactFile);
+        }
+
+        @Override
+        public void attachArtifact(
+            MavenProject project,
+            String artifactType,
+            String artifactClassifier,
+            File artifactFile) {
+          Artifact mainArtifact = project.getArtifact();
+          DefaultArtifact attachedArtifact =
+              new DefaultArtifact(
+                  mainArtifact.getGroupId(),
+                  mainArtifact.getArtifactId(),
+                  VersionRange.createFromVersion(mainArtifact.getVersion()),
+                  mainArtifact.getScope(),
+                  artifactType,
+                  artifactClassifier,
+                  new DefaultArtifactHandler(artifactType));
+          attachedArtifact.setFile(artifactFile);
+          project.getAttachedArtifacts().add(attachedArtifact);
+        }
+
+        @Override
+        public void addResource(
+            MavenProject project,
+            String resourceDirectory,
+            List<String> includes,
+            List<String> excludes) {}
+
+        @Override
+        public void addTestResource(
+            MavenProject project,
+            String resourceDirectory,
+            List<String> includes,
+            List<String> excludes) {}
+      };
 
   private MockWebServer server;
 
@@ -548,11 +595,7 @@ class SignMojoTest {
       server.setPassword(serverPassword);
       settings.addServer(server);
     }
-    DefaultMavenExecutionRequest request = new DefaultMavenExecutionRequest();
-    MavenSession session =
-        new MavenSession(null, request, new DefaultMavenExecutionResult(), Collections.emptyList());
-    session.getSettings().getServers().addAll(settings.getServers());
-    setField(mojo, "session", session);
+    setField(mojo, "settings", settings);
 
     return mojo;
   }
@@ -573,17 +616,7 @@ class SignMojoTest {
     main.setFile(mainArtifact.toFile());
     project.setArtifact(main);
 
-    DefaultArtifact attached =
-        new DefaultArtifact(
-            "org.example",
-            "demo",
-            VersionRange.createFromVersion("1.0.0"),
-            "compile",
-            "zip",
-            "dist",
-            new DefaultArtifactHandler("zip"));
-    attached.setFile(attachedArtifact.toFile());
-    project.addAttachedArtifact(attached);
+    PROJECT_HELPER.attachArtifact(project, "zip", "dist", attachedArtifact.toFile());
 
     return project;
   }
