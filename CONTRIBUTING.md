@@ -145,7 +145,7 @@ and Markdown lint findings.
 
 Hook/tool revisions are updated automatically by
 `.github/workflows/update-tool-versions.yml`, which also runs
-`pre-commit autoupdate --freeze` to keep hook revisions immutable.
+`prek auto-update --freeze` to keep hook revisions immutable.
 
 ## Contact
 

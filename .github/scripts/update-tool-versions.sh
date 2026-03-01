@@ -38,7 +38,7 @@ if [ "${actual_defusedxml_dep}" != "defusedxml==${defusedxml_version}" ]; then
 fi
 
 # Freeze hook revisions to immutable SHAs.
-pre-commit autoupdate --freeze
+prek auto-update --freeze
 
 # Expose whether changes were produced for downstream workflow steps.
 if git diff --quiet -- .github/tools/versions.json .pre-commit-config.yaml; then

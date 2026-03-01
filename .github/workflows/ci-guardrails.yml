@@ -64,6 +64,27 @@ jobs:
         with:
           sarif_file: poutine_results.sarif
 
+  trufflehog:
+    name: Analyze (TruffleHog)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@041f07e9df901a1038a528e5525b0226d04dd5ea # v3.93.6
+        with:
+          extra_args: --results=verified,unknown
+          version: v3.93.6
+
   pom-consistency:
     name: Analyze (POM Consistency)
     runs-on: ubuntu-latest
@@ -91,3 +112,21 @@ jobs:
 
       - name: Check plugin version consistency
         run: python3 .github/scripts/check-pom-consistency.py
+
+  precommit-coverage:
+    name: Validate Pre-commit Coverage Mapping
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Validate hook coverage mapping
+        run: python3 .github/scripts/check-precommit-coverage.py

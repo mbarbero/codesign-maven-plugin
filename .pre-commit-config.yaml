@@ -50,6 +50,24 @@ repos:
         args: [--autofix]
         files: (^|/)src/.*\.java$
 
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: 01886c8a910c64595c47f186ca1ffc0b77fa5458  # frozen: v1.5.0
+    hooks:
+      - id: detect-secrets
+        # Disable HexHighEntropyString plugin to avoid false positives frozen rev.
+        args: [--disable-plugin, HexHighEntropyString]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 6eaad039603a4de39fddd1cf5f727391efe9974e  # frozen: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: 041f07e9df901a1038a528e5525b0226d04dd5ea  # frozen: v3.93.6
+    hooks:
+      - id: trufflehog
+        stages: [manual]
+
   - repo: local
     hooks:
       - id: check-pom-consistency
@@ -74,7 +92,7 @@ repos:
         language: system
         entry: ./mvnw
         args: [-B, -ntp, -P!integration-tests, test]
-        files: (^|/)src/|pom\.xml$
+        files: ^api/src/|^cli/src/|^maven-plugin/src/|(^|/)pom\.xml$
         pass_filenames: false
         # Keep commit-time feedback fast; run full Maven tests before push.
         stages: [pre-push]

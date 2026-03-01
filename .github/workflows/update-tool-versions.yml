@@ -36,10 +36,10 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: .github/requirements/reviewdog-precommit.txt
+          cache-dependency-path: .github/requirements/prek.txt
 
-      - name: Install pre-commit
-        run: pip install -r .github/requirements/reviewdog-precommit.txt
+      - name: Install prek
+        run: pip install -r .github/requirements/prek.txt
 
       - name: Update versions manifest and pre-commit hooks
         id: update
@@ -60,7 +60,6 @@ jobs:
 
             - `.github/tools/versions.json`
             - `.pre-commit-config.yaml` (`defusedxml` pin synced from `.github/requirements/python-common.txt`)
-            - `.pre-commit-config.yaml` (via `pre-commit autoupdate --freeze`)
+            - `.pre-commit-config.yaml` (via `prek auto-update --freeze`)
 
-            This keeps workflow binaries and hook revisions current without requiring
-            the Renovate GitHub App.
+            This keeps workflow binaries and hook revisions current.

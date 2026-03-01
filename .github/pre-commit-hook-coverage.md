@@ -9,6 +9,8 @@ to avoid local-vs-CI drift.
 - `check-yaml`
 - `check-added-large-files`
 - `detect-private-key`
+- `detect-secrets`
+- `gitleaks`
 - `end-of-file-fixer`
 - `trailing-whitespace`
 - `mixed-line-ending`
@@ -24,7 +26,9 @@ to avoid local-vs-CI drift.
   - `.github/workflows/ci-guardrails.yml` (`Analyze (POM Consistency)`)
 - `actionlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (actionlint)`)
-- `ruff` and `ruff-format`:
+- `ruff`:
+  - `.github/workflows/reviewdog.yml` (`reviewdog (ruff)`)
+- `ruff-format`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (ruff)`)
 - `markdownlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (markdownlint)`)
@@ -32,6 +36,13 @@ to avoid local-vs-CI drift.
   - `.github/workflows/ci.yml` (`All Tests`)
 - `integration-tests`:
   - `.github/workflows/ci.yml` (`All Tests`)
+- `trufflehog`:
+  - `.github/workflows/ci-guardrails.yml` (`Analyze (TruffleHog)`)
 
-When adding/removing pre-commit hooks, update this mapping and the `SKIP` list
-in `.github/workflows/reviewdog.yml` together.
+## Hooks Covered by Local Manual Stage
+
+- `trufflehog`:
+  - run manually with `prek run trufflehog --all-files --stage manual`
+
+When adding/removing pre-commit hooks, update this mapping and the `SKIP` list in
+`.github/workflows/reviewdog.yml` together.
