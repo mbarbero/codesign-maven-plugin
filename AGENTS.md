@@ -12,8 +12,8 @@ Eclipse CSI Codesign Maven Plugin — a Maven plugin that signs build artifacts 
 ./mvnw clean verify                                      # Build all modules; unit tests only
 ./mvnw test                                              # Unit tests only (stops before integration-test phase)
 ./mvnw -Pintegration-tests verify                        # Verify with integration tests
-./mvnw test -Dtest=SignMojoTest                          # Run a single test class
-./mvnw test -Dtest=SignMojoTest#testSignFiles            # Run a single test method
+./mvnw test -Dtest=CodesignMojoTest                      # Run a single test class
+./mvnw test -Dtest=CodesignMojoTest#testSignFiles        # Run a single test method
 ./mvnw verify -pl maven-plugin --also-make               # Plugin module (+ its api dependency)
 ./mvnw verify -pl api                                    # API module only
 ./mvnw package -pl cli --also-make                       # CLI fat JAR only
@@ -73,8 +73,8 @@ Three-module Maven aggregator (`codesign-parent`):
 
 **`codesign-maven-plugin`** (`org.eclipse.csi.maven.plugins.signing`):
 
-- **SignMojo** — Maven plugin entry point (goal: `sign`, phase: `package`). Scans for files via glob patterns, resolves API token (parameter → `settings.xml` → env var `CSI_CODESIGN_API_TOKEN`), delegates to `SigningWorkflow`.
-- **SignProjectArtifact** — internal enum for Mojo config parsing (package-private).
+- **CodesignMojo** — Maven plugin entry point (goal: `codesign`, phase: `package`). Scans for files via glob patterns, resolves API token (parameter → `settings.xml` → env var `CSI_CODESIGN_API_TOKEN`), delegates to `SigningWorkflow`.
+- **CodesignMojo.SignProjectArtifact** — internal enum for Mojo config parsing (private nested enum).
 
 **`cli`** (`org.eclipse.csi.codesign.cli`):
 
@@ -94,6 +94,6 @@ Three-module Maven aggregator (`codesign-parent`):
 
 ### Testing Patterns
 
-- **Unit tests** (`./mvnw test`): `MockWebServer` simulates the SignPath API. `SignMojoTest` uses reflection-based field injection to set Mojo parameters (no DI framework). All tests use `@TempDir`.
+- **Unit tests** (`./mvnw test`): `MockWebServer` simulates the SignPath API. `CodesignMojoTest` uses reflection-based field injection to set Mojo parameters (no DI framework). All tests use `@TempDir`.
 - **Integration tests** (`integration-tests` profile, active by default): maven-invoker plugin runs projects under `maven-plugin/src/it/` against a WireMock stub on a reserved random port. Check `maven-plugin/target/wiremock.log` on failures.
 - **Architecture tests**: `CodesignApiArchTest`, `MavenPluginArchTest`, `CliArchTest` (ArchUnit) enforce visibility rules — e.g. only `@Mojo`-annotated classes may be `public` in the plugin module; only `CodesignCli` may be `public` in the CLI module.

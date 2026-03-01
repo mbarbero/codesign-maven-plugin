@@ -32,7 +32,8 @@ class MavenPluginArchTest {
 
   /**
    * Only classes annotated with {@link Mojo} may be public. Supporting types like {@link
-   * SignProjectArtifact} are internal configuration details that must not be exposed to consumers.
+   * CodesignMojo.SignProjectArtifact} are internal configuration details that must not be exposed
+   * to consumers.
    */
   @ArchTest
   static final ArchRule onlyMojoClassesArePublic =

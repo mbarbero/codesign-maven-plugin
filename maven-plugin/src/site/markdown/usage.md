@@ -16,7 +16,7 @@ Add the plugin to your project's `pom.xml`:
           <id>sign-artifacts</id>
           <phase>package</phase>
           <goals>
-            <goal>sign</goal>
+            <goal>codesign</goal>
           </goals>
           <configuration>
             <organizationId>${env.SIGNPATH_ORG_ID}</organizationId>

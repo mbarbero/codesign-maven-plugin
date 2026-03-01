@@ -22,7 +22,7 @@
         <executions>
           <execution>
             <goals>
-              <goal>sign</goal>
+              <goal>codesign</goal>
             </goals>
           </execution>
         </executions>
