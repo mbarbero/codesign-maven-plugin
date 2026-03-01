@@ -113,8 +113,8 @@ jobs:
       - name: Check plugin version consistency
         run: python3 .github/scripts/check-pom-consistency.py
 
-  precommit-coverage:
-    name: Validate Pre-commit Coverage Mapping
+  hook-coverage:
+    name: Validate Hook Coverage Mapping
     runs-on: ubuntu-latest
 
     steps:
@@ -129,10 +129,10 @@ jobs:
           persist-credentials: false
 
       - name: Validate hook coverage mapping
-        run: python3 .github/scripts/check-precommit-coverage.py
+        run: python3 .github/scripts/check-hook-coverage.py
 
-  precommit-frozen:
-    name: Validate Pre-commit Frozen Revisions
+  hook-revisions-frozen:
+    name: Validate Hook Revisions Are Frozen
     runs-on: ubuntu-latest
 
     steps:
@@ -147,4 +147,4 @@ jobs:
           persist-credentials: false
 
       - name: Validate hook revisions are frozen
-        run: python3 .github/scripts/check-precommit-frozen.py
+        run: python3 .github/scripts/check-hook-revisions-frozen.py

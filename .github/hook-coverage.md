@@ -1,9 +1,9 @@
-# Pre-commit Hook Coverage
+# Hook Coverage
 
-This document tracks how hooks in `.pre-commit-config.yaml` are enforced in CI
-to avoid local-vs-CI drift.
+This document tracks how hooks in `prek.toml` are enforced in CI to avoid
+local-vs-CI drift.
 
-## Hooks Covered by `reviewdog.yml` pre-commit job
+## Hooks Covered by `reviewdog.yml` prek job
 
 - `check-merge-conflict`
 - `check-yaml`
@@ -25,8 +25,8 @@ to avoid local-vs-CI drift.
   - `.github/workflows/ci-guardrails.yml` (`Analyze (Poutine)`)
 - `check-pom-consistency`:
   - `.github/workflows/ci-guardrails.yml` (`Analyze (POM Consistency)`)
-- `check-precommit-frozen`:
-  - `.github/workflows/ci-guardrails.yml` (`Validate Pre-commit Frozen Revisions`)
+- `check-hook-revisions-frozen`:
+  - `.github/workflows/ci-guardrails.yml` (`Validate Hook Revisions Are Frozen`)
 - `actionlint`:
   - `.github/workflows/reviewdog.yml` (`reviewdog (actionlint)`)
 - `ruff`:
@@ -47,5 +47,5 @@ to avoid local-vs-CI drift.
 - `trufflehog`:
   - run manually with `prek run trufflehog --all-files --stage manual`
 
-When adding/removing pre-commit hooks, update this mapping and the `SKIP` list in
+When adding/removing hooks, update this mapping and the `SKIP` list in
 `.github/workflows/reviewdog.yml` together.

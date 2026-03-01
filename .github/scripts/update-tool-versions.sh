@@ -26,14 +26,14 @@ jq \
   .github/tools/versions.json > "${tmpfile}"
 mv "${tmpfile}" .github/tools/versions.json
 
-# Keep pre-commit local hook dependency in sync with python-common.txt.
-yq -i \
-  '(.repos[] | select(.repo == "local") | .hooks[] | select(.id == "check-pom-consistency") | .additional_dependencies) = ["defusedxml=='"${defusedxml_version}"'"]' \
-  .pre-commit-config.yaml
+# Keep the local hook dependency in sync with python-common.txt.
+perl -0pi -e 's/"defusedxml==[^"]+"/"defusedxml=='"${defusedxml_version}"'"/g' prek.toml
 
-actual_defusedxml_dep="$(yq -r '.repos[] | select(.repo == "local") | .hooks[] | select(.id == "check-pom-consistency") | .additional_dependencies[0]' .pre-commit-config.yaml)"
+actual_defusedxml_dep="$(
+  perl -ne 'if (/additional_dependencies\s*=\s*\[\s*"([^"]+)"\s*\]/) { print "$1\n"; exit }' prek.toml
+)"
 if [ "${actual_defusedxml_dep}" != "defusedxml==${defusedxml_version}" ]; then
-  echo "::error::Could not update defusedxml pin in .pre-commit-config.yaml"
+  echo "::error::Could not update defusedxml pin in prek.toml"
   exit 1
 fi
 
@@ -41,11 +41,11 @@ fi
 prek auto-update --freeze
 
 # Expose whether changes were produced for downstream workflow steps.
-if git diff --quiet -- .github/tools/versions.json .pre-commit-config.yaml; then
+if git diff --quiet -- .github/tools/versions.json prek.toml; then
   echo "changed=false" >> "${output_file}"
   echo "No updates found."
 else
   echo "changed=true" >> "${output_file}"
   echo "Updated versions:"
-  git --no-pager diff -- .github/tools/versions.json .pre-commit-config.yaml
+  git --no-pager diff -- .github/tools/versions.json prek.toml
 fi

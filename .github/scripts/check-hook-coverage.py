@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate that pre-commit hooks, coverage docs, and CI SKIP list stay aligned."""
+"""Validate that hooks, coverage docs, and CI SKIP list stay aligned."""
 
 from __future__ import annotations
 
@@ -9,16 +9,18 @@ import sys
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PRECOMMIT_CONFIG = ROOT / ".pre-commit-config.yaml"
+PREK_CONFIG = ROOT / "prek.toml"
 REVIEWDOG_WORKFLOW = ROOT / ".github" / "workflows" / "reviewdog.yml"
-COVERAGE_DOC = ROOT / ".github" / "pre-commit-hook-coverage.md"
+COVERAGE_DOC = ROOT / ".github" / "hook-coverage.md"
 
 
 def parse_hook_ids(config_text: str) -> set[str]:
     return {
         match.group(1)
         for match in re.finditer(
-            r"^\s*-\s+id:\s+([A-Za-z0-9._-]+)\s*(?:#.*)?$", config_text, re.MULTILINE
+            r'^\s*\{?\s*id\s*=\s*"([A-Za-z0-9._-]+)"',
+            config_text,
+            re.MULTILINE,
         )
     }
 
@@ -37,7 +39,7 @@ def parse_doc_ids(coverage_text: str) -> tuple[set[str], set[str], set[str]]:
     manual_ids: set[str] = set()
 
     for line in coverage_text.splitlines():
-        if line.startswith("## Hooks Covered by `reviewdog.yml` pre-commit job"):
+        if line.startswith("## Hooks Covered by `reviewdog.yml` prek job"):
             section = "reviewdog"
             continue
         if line.startswith("## Hooks Covered by Dedicated CI Jobs"):
@@ -62,13 +64,9 @@ def parse_doc_ids(coverage_text: str) -> tuple[set[str], set[str], set[str]]:
             manual_ids.add(hook_id)
 
     if not reviewdog_ids:
-        raise ValueError(
-            "No reviewdog hook IDs found in .github/pre-commit-hook-coverage.md"
-        )
+        raise ValueError("No reviewdog hook IDs found in .github/hook-coverage.md")
     if not dedicated_ids:
-        raise ValueError(
-            "No dedicated hook IDs found in .github/pre-commit-hook-coverage.md"
-        )
+        raise ValueError("No dedicated hook IDs found in .github/hook-coverage.md")
 
     return reviewdog_ids, dedicated_ids, manual_ids
 
@@ -78,7 +76,7 @@ def print_set(label: str, values: set[str]) -> None:
 
 
 def main() -> int:
-    hook_ids = parse_hook_ids(PRECOMMIT_CONFIG.read_text())
+    hook_ids = parse_hook_ids(PREK_CONFIG.read_text())
     skip_ids = parse_skip_ids(REVIEWDOG_WORKFLOW.read_text())
     reviewdog_doc_ids, dedicated_doc_ids, manual_doc_ids = parse_doc_ids(
         COVERAGE_DOC.read_text()
@@ -107,12 +105,12 @@ def main() -> int:
 
     if failures:
         print(
-            "Coverage validation failed. Update .pre-commit-config.yaml, "
-            ".github/pre-commit-hook-coverage.md, and reviewdog SKIP together."
+            "Coverage validation failed. Update prek.toml, "
+            ".github/hook-coverage.md, and reviewdog SKIP together."
         )
         return 1
 
-    print("pre-commit coverage mapping is consistent.")
+    print("Hook coverage mapping is consistent.")
     return 0
 
 

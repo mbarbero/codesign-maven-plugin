@@ -107,8 +107,8 @@ jobs:
           shellcheck -f checkstyle "${files}" \
             | reviewdog -f=checkstyle -name="shellcheck" -reporter=github-pr-review -filter-mode=added -fail-level=error
 
-  reviewdog-pre-commit:
-    name: reviewdog (pre-commit)
+  reviewdog-prek:
+    name: reviewdog (prek)
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Required to post review comments
@@ -141,30 +141,30 @@ jobs:
         run: pip install -r .github/requirements/prek.txt
 
       - name: Run prek
-        id: precommit
+        id: prek
         continue-on-error: true
         env:
           # poutine has a dedicated job in ci-guardrails.yml.
           # unit-tests/integration-tests are pre-push hooks and covered by ci.yml.
           # actionlint/ruff/shellcheck have dedicated reviewdog jobs above.
           # zizmor has a dedicated job in ci-guardrails.yml (with SARIF upload).
-          # check-pom-consistency/check-precommit-frozen have dedicated jobs in ci-guardrails.yml.
+          # check-pom-consistency/check-hook-revisions-frozen have dedicated jobs in ci-guardrails.yml.
           # markdownlint has a dedicated reviewdog job above.
-          SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,shellcheck,zizmor,check-pom-consistency,check-precommit-frozen,markdownlint
+          SKIP: poutine,unit-tests,integration-tests,actionlint,ruff,shellcheck,zizmor,check-pom-consistency,check-hook-revisions-frozen,markdownlint
         run: prek run --all-files --show-diff-on-failure
 
       - name: Suggest fixes with reviewdog
         if: ${{ always() }}
         uses: reviewdog/action-suggester@aa38384ceb608d00f84b4690cacc83a5aba307ff # v1.24.0
         with:
-          tool_name: pre-commit
+          tool_name: prek
           fail_on_error: "false"
 
-      - name: Fail if pre-commit found issues
-        if: ${{ steps.precommit.outcome == 'failure' }}
+      - name: Fail if prek found issues
+        if: ${{ steps.prek.outcome == 'failure' }}
         shell: bash
         run: |
-          echo "::error::Pre-commit checks failed. Run locally: prek run --all-files"
+          echo "::error::Prek checks failed. Run locally: prek run --all-files"
           exit 1
 
   reviewdog-markdownlint:

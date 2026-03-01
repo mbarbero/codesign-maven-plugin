@@ -68,15 +68,7 @@ Python to install itself — but the hooks it drives require a Java JDK on
 the `PATH` (for Maven builds and the Java formatter) and the `poutine`
 binary for workflow security analysis.
 
-The hook config (`.pre-commit-config.yaml`) defines:
-
-- `minimum_prek_version` for local `prek` users (recommended path)
-- `minimum_pre_commit_version` for compatibility with CI/automation paths that
-  still invoke `pre-commit`
-
-If you run `pre-commit` directly, it may print a warning about
-`minimum_prek_version` being an unexpected key. This warning is expected and
-does not affect local development with `prek`.
+The hook config lives in `prek.toml`.
 
 ### Installing prek
 
@@ -100,9 +92,9 @@ Once prek is installed, wire it into the repository's Git hooks:
 prek install
 ```
 
-This installs two hooks driven by `.pre-commit-config.yaml`:
+This installs two hooks driven by `prek.toml`:
 
-- **pre-commit** — runs:
+- **commit-time hook** — runs:
   - [zizmor](https://github.com/woodruffw/zizmor) (GitHub Actions security linter)
   - [poutine](https://github.com/boostsecurityio/poutine) (Build pipeline security analyzer)
   - `check-merge-conflict`, `check-yaml`, `check-added-large-files`,
@@ -122,7 +114,7 @@ system:
 
 | Tool | Purpose | Installation |
 | --- | --- | --- |
-| **poutine** | Workflow security analysis (run by `pre-commit`) | `brew install boostsecurityio/tap/poutine` |
+| **poutine** | Workflow security analysis (run by the commit-time hook) | `brew install boostsecurityio/tap/poutine` |
 | **cdxgen** | GitHub Actions SBOM generation (used in `generate-sbom` profile) | Requires Node.js; `npm install -g @cyclonedx/cdxgen` |
 | **cyclonedx-cli** | SBOM merging (used in `generate-sbom` profile) | `brew install cyclonedx-cli` |
 | **GraalVM** | Native CLI binary builds (optional) | [graalvm.org](https://www.graalvm.org/) |
@@ -139,7 +131,7 @@ uv run --with defusedxml python3 .github/scripts/generate-site-index.py
 
 ### Pull request checks
 
-CI also runs the same pre-commit checks on pull requests. In addition,
+CI also runs the same hook checks on pull requests. In addition,
 reviewdog posts granular inline comments/suggestions for workflow, Python,
 and Markdown lint findings.
 

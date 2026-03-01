@@ -41,7 +41,7 @@ jobs:
       - name: Install prek
         run: pip install -r .github/requirements/prek.txt
 
-      - name: Update versions manifest and pre-commit hooks
+      - name: Update versions manifest and hooks
         id: update
         env:
           GH_TOKEN: ${{ github.token }}
@@ -59,7 +59,7 @@ jobs:
             Automated update of pinned tool versions in:
 
             - `.github/tools/versions.json`
-            - `.pre-commit-config.yaml` (`defusedxml` pin synced from `.github/requirements/python-common.txt`)
-            - `.pre-commit-config.yaml` (via `prek auto-update --freeze`)
+            - `prek.toml` (`defusedxml` pin synced from `.github/requirements/python-common.txt`)
+            - `prek.toml` (via `prek auto-update --freeze`)
 
             This keeps workflow binaries and hook revisions current.
