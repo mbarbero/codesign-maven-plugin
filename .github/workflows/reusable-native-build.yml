@@ -3,17 +3,8 @@ name: Native Build Reusable
 on:
   workflow_call:
     inputs:
-      publish-release:
-        description: Upload binaries to a GitHub release instead of artifacts
-        required: true
-        type: boolean
-      tag-name:
-        description: Release tag name (required when publish-release is true)
-        required: false
-        type: string
-        default: ""
       artifact-retention-days:
-        description: Artifact retention in days for non-release uploads
+        description: Artifact retention in days
         required: false
         type: number
         default: 7
@@ -26,18 +17,23 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux-x86_64
+            jreleaser-platform: linux-x86_64
             binary: codesign
           - os: ubuntu-24.04-arm
             platform: linux-aarch64
+            jreleaser-platform: linux-aarch_64
             binary: codesign
           - os: macos-latest
             platform: macos-aarch64
+            jreleaser-platform: osx-aarch_64
             binary: codesign
           - os: macos-15-intel
             platform: macos-x86_64
+            jreleaser-platform: osx-x86_64
             binary: codesign
           - os: windows-latest
             platform: windows-x86_64
+            jreleaser-platform: windows-x86_64
             binary: codesign.exe
 
     runs-on: ${{ matrix.os }}
@@ -65,36 +61,10 @@ jobs:
         shell: bash
         run: ./mvnw -B -ntp -Pnative -pl cli --also-make -DskipTests package
 
-      - name: Rename binary for release asset
-        id: rename
-        if: ${{ inputs.publish-release }}
-        env:
-          MATRIX_BINARY: ${{ matrix.binary }}
-          MATRIX_PLATFORM: ${{ matrix.platform }}
-        shell: bash
-        run: |
-          src="cli/target/${MATRIX_BINARY}"
-          dst="codesign-${MATRIX_PLATFORM}"
-          if [[ "${MATRIX_PLATFORM}" == "windows-x86_64" ]]; then
-            dst="${dst}.exe"
-          fi
-          cp "$src" "$dst"
-          echo "asset=${dst}" >> "$GITHUB_OUTPUT"
-
-      - name: Upload binary to GitHub release
-        if: ${{ inputs.publish-release }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ inputs.tag-name }}
-          ASSET_NAME: ${{ steps.rename.outputs.asset }}
-        shell: bash
-        run: gh release upload "${TAG_NAME}" "${ASSET_NAME}" --clobber
-
       - name: Upload native binary artifact
-        if: ${{ !inputs.publish-release }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: codesign-${{ matrix.platform }}
+          name: codesign-${{ matrix.jreleaser-platform }}
           path: cli/target/${{ matrix.binary }}
           if-no-files-found: error
           retention-days: ${{ inputs.artifact-retention-days }}
