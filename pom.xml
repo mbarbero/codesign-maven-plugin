@@ -421,6 +421,38 @@
                 </nexus2>
               </maven>
             </deploy>
+            <assemble>
+              <nativeImage>
+                <codesign>
+                  <active>ALWAYS</active>
+                  <executable>codesign</executable>
+                  <!-- Pre-built platform binaries downloaded by CI before jreleaser:assemble runs.
+                       JReleaser wraps each into a platform-specific .zip/.tar.gz archive. -->
+                  <artifacts>
+                    <artifact>
+                      <path>out/linux-x86_64/codesign</path>
+                      <platform>linux-x86_64</platform>
+                    </artifact>
+                    <artifact>
+                      <path>out/linux-aarch_64/codesign</path>
+                      <platform>linux-aarch_64</platform>
+                    </artifact>
+                    <artifact>
+                      <path>out/osx-x86_64/codesign</path>
+                      <platform>osx-x86_64</platform>
+                    </artifact>
+                    <artifact>
+                      <path>out/osx-aarch_64/codesign</path>
+                      <platform>osx-aarch_64</platform>
+                    </artifact>
+                    <artifact>
+                      <path>out/windows-x86_64/codesign.exe</path>
+                      <platform>windows-x86_64</platform>
+                    </artifact>
+                  </artifacts>
+                </codesign>
+              </nativeImage>
+            </assemble>
           </jreleaser>
         </configuration>
       </plugin>
