@@ -38,7 +38,8 @@ jobs:
     name: Analyze (Poutine)
     runs-on: ubuntu-latest
 
-    permissions: {}
+    permissions:
+      security-events: write # Required to create code scanning alerts
 
     steps:
       - name: Harden Runner
@@ -65,6 +66,17 @@ jobs:
             | tar -xzf - -C /usr/local/bin poutine
 
       - name: Run poutine
+        id: poutine
+        continue-on-error: true
+        run: poutine analyze_local "${GITHUB_WORKSPACE}" -f sarif > poutine_results.sarif
+
+      - name: Upload poutine SARIF file
+        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+        with:
+          sarif_file: poutine_results.sarif
+
+      - name: Fail if poutine reported findings
+        if: steps.poutine.outcome == 'failure'
         run: poutine analyze_local "${GITHUB_WORKSPACE}"
 
   trufflehog:
