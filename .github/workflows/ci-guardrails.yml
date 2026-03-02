@@ -38,8 +38,7 @@ jobs:
     name: Analyze (Poutine)
     runs-on: ubuntu-latest
 
-    permissions:
-      security-events: write # Required to create code scanning alerts
+    permissions: {}
 
     steps:
       - name: Harden Runner
@@ -52,15 +51,21 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run poutine
-        uses: boostsecurityio/poutine-action@84c0a0d32e8d57ae12651222be1eb15351429228 # v0.15.2
-        with:
-          output: poutine_results.sarif
+      - name: Load pinned tool versions
+        id: versions
+        run: |
+          poutine="$(jq -r '.poutine' .github/tools/versions.json)"
+          echo "poutine=${poutine}" >> "$GITHUB_OUTPUT"
 
-      - name: Upload poutine SARIF file
-        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
-        with:
-          sarif_file: poutine_results.sarif
+      - name: Install poutine
+        env:
+          VERSION: ${{ steps.versions.outputs.poutine }}
+        run: |
+          curl -sSfL "https://github.com/boostsecurityio/poutine/releases/download/v${VERSION}/poutine_Linux_x86_64.tar.gz" \
+            | tar -xzf - -C /usr/local/bin poutine
+
+      - name: Run poutine
+        run: poutine analyze_local "${GITHUB_WORKSPACE}"
 
   trufflehog:
     name: Analyze (TruffleHog)
