@@ -139,6 +139,58 @@ Hook/tool revisions are updated automatically by
 `.github/workflows/update-tool-versions.yml`, which also runs
 `prek auto-update --freeze` to keep hook revisions immutable.
 
+## Building
+
+```shell
+# Default full build (unit tests only)
+./mvnw clean verify
+
+# Full build with integration tests
+./mvnw clean verify -Pintegration-tests
+
+# Build the CLI JVM fat JAR only
+./mvnw package -pl cli --also-make
+
+# Build a native CLI binary (requires GraalVM with native-image)
+./mvnw -Pnative package -pl cli --also-make -DskipTests
+# Output: cli/target/codesign  (or codesign.exe on Windows)
+```
+
+To generate SBOMs (CycloneDX) in a build, enable the `generate-sbom` profile
+(requires `cdxgen` and `cyclonedx-cli`; see [Additional Development Tools](#additional-development-tools)):
+
+```shell
+./mvnw clean verify -Pgenerate-sbom
+```
+
+## Releasing (Maven Central via JReleaser)
+
+This project publishes to Maven Central via JReleaser.
+
+- Workflow: `.github/workflows/release.yml`
+- Trigger: push a version tag (e.g., `v1.0.0`) or run manually via `workflow_dispatch`
+- Build profile: `release`
+
+### Required GitHub Secrets
+
+Configure these repository/environment secrets before running the release workflow:
+
+- `JRELEASER_MAVENCENTRAL_USERNAME`
+- `JRELEASER_MAVENCENTRAL_PASSWORD`
+- `JRELEASER_GPG_PUBLIC_KEY` (ASCII-armored)
+- `JRELEASER_GPG_SECRET_KEY` (ASCII-armored)
+- `JRELEASER_GPG_PASSPHRASE`
+
+Use the `mode=dry-run` option on the manual trigger to validate release configuration
+without publishing.
+
+### Local Dry Run
+
+```shell
+./mvnw -Prelease -DskipTests -Daether.checksums.omitChecksumsForExtensions=.asc,.sigstore.json clean verify
+./mvnw -Prelease -Djreleaser.dry.run=true jreleaser:full-release
+```
+
 ## Contact
 
 Contact the project developers via the project's "dev" list:

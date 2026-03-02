@@ -140,6 +140,6 @@ request (e.g. build number, Git commit SHA):
 See the [codesign:sign goal documentation](./sign-mojo.html) for the full list of
 configuration parameters and their defaults.
 
-For a narrative guide covering authentication, file selection, output modes, retry
-behaviour, failure conditions, and troubleshooting, see the project
+For authentication options, output modes, retry behaviour, failure conditions, and
+troubleshooting guidance, see
 [USAGE.md](https://github.com/eclipse-csi/codesign-maven-plugin/blob/main/USAGE.md).

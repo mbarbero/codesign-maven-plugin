@@ -9,31 +9,6 @@ This guide covers both tools in the Eclipse CSI Codesign project:
 
 ---
 
-## Table of Contents
-
-- [Installation](#installation)
-  - [Maven Plugin](#maven-plugin)
-  - [CLI](#cli)
-- [Authentication](#authentication)
-  - [Maven Plugin Authentication](#maven-plugin-authentication)
-  - [CLI Authentication](#cli-authentication)
-- [Quickstart](#quickstart)
-  - [CLI: Sign a file](#cli-sign-a-file)
-  - [Plugin: Ad-hoc invocation](#plugin-ad-hoc-invocation)
-  - [Plugin: Embedded in the build lifecycle](#plugin-embedded-in-the-build-lifecycle)
-- [Configuration Reference](#configuration-reference)
-  - [Maven Plugin Parameters](#maven-plugin-parameters)
-  - [CLI Options](#cli-options)
-  - [Environment Variables](#environment-variables)
-- [Behavior and Guarantees](#behavior-and-guarantees)
-  - [File Selection (Plugin)](#file-selection-plugin)
-  - [Output Modes](#output-modes)
-  - [Retry and Timeout](#retry-and-timeout)
-  - [Signing Failure Modes](#signing-failure-modes)
-- [Troubleshooting](#troubleshooting)
-
----
-
 ## Installation
 
 ### Maven Plugin
@@ -229,56 +204,14 @@ After `mvn package`, signed files are available in `target/signed/`.
 
 ## Configuration Reference
 
-### Maven Plugin Parameters
+Reference documentation is published on the [project site](https://eclipse-csi.github.io/codesign-maven-plugin/):
 
-All parameters are optional unless marked **Required**.
+- **Maven Plugin parameters**: [`codesign:sign` goal reference](https://eclipse-csi.github.io/codesign-maven-plugin/latest/maven-plugin/sign-mojo.html)
+- **CLI options**: [CLI man page](https://eclipse-csi.github.io/codesign-maven-plugin/latest/cli-manpage/)
+- **Java API**: [API Javadoc](https://eclipse-csi.github.io/codesign-maven-plugin/latest/api-javadoc/)
 
-| Parameter | System property | Default | Description |
-| --- | --- | --- | --- |
-| `organizationId` | `csi.codesign.organizationId` | **Required** | SignPath organization identifier. |
-| `projectId` | `csi.codesign.projectId` | **Required** | SignPath project slug. |
-| `signingPolicy` | `csi.codesign.signingPolicy` | **Required** | SignPath signing policy slug. |
-| `artifactConfiguration` | `csi.codesign.artifactConfiguration` | — | SignPath artifact configuration slug. |
-| `description` | `csi.codesign.description` | — | Description shown in the signing request. |
-| `apiToken` | `csi.codesign.apiToken` | — | API token (see [Authentication](#maven-plugin-authentication)). |
-| `serverId` | `csi.codesign.serverId` | `codesign` | Maven `settings.xml` server `<id>` used to look up the API token. |
-| `baseUrl` | `csi.codesign.baseUrl` | `https://app.signpath.io/Api` | SignPath API base URL. Override for on-premise deployments. |
-| `baseDirectory` | — | `${project.build.directory}` | Root directory walked when `<includes>` patterns are set. |
-| `includes` | — | — | Glob patterns (relative to `baseDirectory`) selecting files to sign. When empty, the file scan produces no candidates. |
-| `excludes` | — | — | Glob patterns applied after `includes` to exclude matched files. Has no effect when `includes` is empty. |
-| `outputDirectory` | `csi.codesign.outputDirectory` | — | Directory for signed files. When unset, files are replaced in place. |
-| `signProjectArtifact` | `csi.codesign.signProjectArtifact` | `auto` | Whether to sign the main Maven artifact. Accepted values: `auto`, `true`, `false` (case-insensitive). With `auto`, signing is enabled for `jar`, `war`, `ear`, `rar`, `ejb`, and `maven-plugin` packaging; disabled for `pom` and all other types. |
-| `signAttachedArtifacts` | `csi.codesign.signAttachedArtifacts` | `false` | Whether to include Maven attached artifacts (e.g. `-sources.jar`). |
-| `parameters` | — | — | Custom `<key>value</key>` metadata map forwarded to SignPath in the signing request. |
-| `failOnNoFilesFound` | `csi.codesign.failOnNoFilesFound` | `false` | Fail the build when no files are selected for signing. |
-| `skip` | `csi.codesign.skip` | `false` | Skip signing. |
-| `skipSigning` | `csi.codesign.skipSigning` | `false` | Alias for `skip`. |
-| `pollInterval` | `csi.codesign.pollInterval` | `5` | Seconds between signing-status poll requests. |
-| `retryInterval` | `csi.codesign.retryInterval` | `30` | Seconds between HTTP retry attempts. |
-| `retryTimeout` | `csi.codesign.retryTimeout` | `600` | Maximum time window in seconds for HTTP retries. |
-| `maxRetries` | `csi.codesign.maxRetries` | `10` | Maximum number of HTTP retry attempts. |
-| `httpTimeout` | `csi.codesign.httpTimeout` | `300` | HTTP read/write timeout in seconds. |
-| `connectTimeout` | `csi.codesign.connectTimeout` | `30` | HTTP connection timeout in seconds. |
-
-### CLI Options
-
-| Option | Short | Default | Description |
-| --- | --- | --- | --- |
-| `--organization-id` | `-O` | **Required** | SignPath organization identifier. |
-| `--project-id` | `-p` | **Required** | SignPath project slug. |
-| `--signing-policy` | `-s` | **Required** | SignPath signing policy slug. |
-| `--artifact-configuration` | | — | SignPath artifact configuration slug (optional). |
-| `--description` | | — | Description shown in the signing request. |
-| `--param key=value` | | — | Custom metadata forwarded to SignPath (repeatable). |
-| `--api-token` | | — | API token (see [Authentication](#cli-authentication)). |
-| `--output` | | — | Output path for the signed file. Valid only for a single input file; mutually exclusive with `--output-dir`. |
-| `--output-dir` | | — | Directory for signed files (original filenames preserved). Mutually exclusive with `--output`. |
-| `--force-overwrite` | | `false` | Required for in-place replacement (when neither `--output` nor `--output-dir` is given, or when `--output` resolves to the same path as the input). |
-| `--wait-for-completion-timeout` | | `600` | Maximum seconds to wait for signing completion. All other timing parameters are derived from this value (see [Retry and Timeout](#retry-and-timeout)). |
-| `--base-url` | | `https://app.signpath.io/Api` | SignPath API base URL. Override for on-premise deployments. |
-| `--verbose` | `-v` | `false` | Show derived timing parameters and per-file progress. |
-| `--help` | `-h` | | Show help and exit. |
-| `--version` | `-V` | | Show version and exit. |
+> Documentation for past releases and for snapshot (built from the `main` branch) are
+> [available](https://eclipse-csi.github.io/codesign-maven-plugin/).
 
 ### Environment Variables
 
