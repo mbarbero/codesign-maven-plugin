@@ -68,7 +68,12 @@ jobs:
       - name: Run poutine
         id: poutine
         continue-on-error: true
-        run: poutine analyze_local "${GITHUB_WORKSPACE}" -f sarif > poutine_results.sarif
+        run: |
+          # poutine emits an all-zero GUID that fails GitHub's UUID validation;
+          # pipe through jq to replace it with a valid RFC-4122 nil-equivalent.
+          poutine analyze_local "${GITHUB_WORKSPACE}" -f sarif \
+            | jq '(.runs[].tool.driver.supportedTaxonomies[] | select(.guid == "00000000-0000-0000-0000-000000000000")).guid = "00000000-0000-1000-8000-000000000000"' \
+            > poutine_results.sarif
 
       - name: Upload poutine SARIF file
         uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
