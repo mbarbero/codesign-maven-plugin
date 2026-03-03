@@ -13,7 +13,6 @@ permissions: {}
 jobs:
   reviewdog-actionlint:
     name: reviewdog (actionlint)
-    # TODO: evaluate ubuntu-slim (1 vCPU, 5 GB RAM, 15 min limit) once ci-guardrails.yml is validated
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Required to post review comments
@@ -39,7 +38,6 @@ jobs:
 
   reviewdog-ruff:
     name: reviewdog (ruff)
-    # TODO: evaluate ubuntu-slim (1 vCPU, 5 GB RAM, 15 min limit) once ci-guardrails.yml is validated
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Required to post review comments
@@ -157,7 +155,6 @@ jobs:
 
   reviewdog-markdownlint:
     name: reviewdog (markdownlint)
-    # TODO: evaluate ubuntu-slim (1 vCPU, 5 GB RAM, 15 min limit) once ci-guardrails.yml is validated
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Required to post review comments
