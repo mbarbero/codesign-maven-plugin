@@ -15,7 +15,7 @@ permissions: {}
 jobs:
   zizmor:
     name: Analyze (Zizmor)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       security-events: write # Required to create code scanning alerts
@@ -36,7 +36,7 @@ jobs:
 
   poutine:
     name: Analyze (Poutine)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       security-events: write # Required to create code scanning alerts
@@ -86,7 +86,7 @@ jobs:
 
   trufflehog:
     name: Analyze (TruffleHog)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Harden Runner
@@ -113,7 +113,7 @@ jobs:
 
   pom-consistency:
     name: Analyze (POM Consistency)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Harden Runner
@@ -134,7 +134,7 @@ jobs:
 
   hook-coverage:
     name: Validate Hook Coverage Mapping
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Harden Runner
@@ -152,7 +152,7 @@ jobs:
 
   hook-revisions-frozen:
     name: Validate Hook Revisions Are Frozen
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Harden Runner
