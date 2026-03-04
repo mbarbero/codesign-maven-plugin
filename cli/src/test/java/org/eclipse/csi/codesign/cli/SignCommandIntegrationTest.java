@@ -61,6 +61,11 @@ class SignCommandIntegrationTest {
   private final SignCommand testSignCommand =
       new SignCommand() {
         @Override
+        String resolveToken() {
+          return "test-token";
+        }
+
+        @Override
         CodesignClient buildClient(CodesignClient.Config config) {
           try {
             Constructor<CodesignClient> ctor =
@@ -136,8 +141,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--output",
                 output.toString(),
                 input.toString());
@@ -193,8 +196,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--output-dir",
                 outDir.toString(),
                 f1.toString(),
@@ -234,8 +235,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--force-overwrite",
                 input.toString());
 
@@ -282,8 +281,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--wait-for-completion-timeout",
                 "10",
                 "--output",
@@ -323,8 +320,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--force-overwrite",
                 input.toString());
 
@@ -352,8 +347,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--force-overwrite",
                 input.toString());
 
@@ -389,8 +382,6 @@ class SignCommandIntegrationTest {
                 "proj",
                 "--signing-policy",
                 "release",
-                "--api-token",
-                "test-token",
                 "--param",
                 "buildNumber=42",
                 "--param",

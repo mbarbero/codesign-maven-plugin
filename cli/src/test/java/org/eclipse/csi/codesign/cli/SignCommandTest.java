@@ -13,7 +13,6 @@ package org.eclipse.csi.codesign.cli;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -85,8 +84,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 "--force-overwrite");
     assertNotEquals(0, exit);
   }
@@ -103,8 +100,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 "--force-overwrite",
                 tempDir.resolve("nonexistent.jar").toString());
     assertNotEquals(0, exit);
@@ -127,8 +122,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 "--output",
                 tempDir.resolve("signed.jar").toString(),
                 f1.toString(),
@@ -153,8 +146,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 f1.toString(),
                 f2.toString());
     assertNotEquals(0, exit);
@@ -175,8 +166,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 "--output",
                 tempDir.resolve("out.jar").toString(),
                 "--output-dir",
@@ -200,8 +189,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 f.toString());
     assertNotEquals(0, exit);
   }
@@ -221,41 +208,10 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "token",
                 "--output",
                 f.toString(), // same as input
                 f.toString());
     assertNotEquals(0, exit);
-  }
-
-  @Test
-  void apiTokenFlagEmitsWarningToStderr() throws IOException {
-    Path f = tempDir.resolve("a.jar");
-    Files.writeString(f, "content");
-
-    StringWriter errOut = new StringWriter();
-    new CommandLine(new CodesignCli())
-        .setOut(new PrintWriter(new StringWriter()))
-        .setErr(new PrintWriter(errOut))
-        .setExecutionExceptionHandler(new PrintExceptionMessageHandler())
-        .execute(
-            "sign",
-            "--organization-id",
-            "org",
-            "--project-id",
-            "proj",
-            "--signing-policy",
-            "policy",
-            "--api-token",
-            "my-secret-token",
-            "--force-overwrite",
-            f.toString());
-
-    String err = errOut.toString();
-    assertTrue(
-        err.contains("[WARNING]") && err.contains("--api-token"),
-        "Expected warning about --api-token flag in stderr, got: " + err);
   }
 
   @Test
@@ -286,8 +242,6 @@ class SignCommandTest {
                 "proj",
                 "--signing-policy",
                 "policy",
-                "--api-token",
-                "test-token",
                 "--output-dir",
                 tempDir.resolve("out").toString(),
                 f1.toString(),

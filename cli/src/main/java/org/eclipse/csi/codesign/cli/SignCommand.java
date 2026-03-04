@@ -52,7 +52,6 @@ import picocli.CommandLine.Spec;
  * <h2>Token resolution (in priority order)</h2>
  *
  * <ol>
- *   <li>{@code --api-token}
  *   <li>{@code CSI_CODESIGN_API_TOKEN} environment variable
  *   <li>{@code api.token} key in {@code ~/.config/codesign/config.properties}
  * </ol>
@@ -122,16 +121,6 @@ class SignCommand implements Callable<Integer> {
               + " Format: --param key=value --param key2=value2")
   Map<String, String> parameters;
 
-  // --- Authentication ---
-
-  @Option(
-      names = "--api-token",
-      paramLabel = "<token>",
-      description =
-          "SignPath API token. Falls back to ${CSI_CODESIGN_API_TOKEN} environment variable,"
-              + " then to api.token in ~/.config/codesign/config.properties.")
-  String apiToken;
-
   // --- Output ---
 
   @Option(
@@ -192,23 +181,13 @@ class SignCommand implements Callable<Integer> {
     validateFiles();
     validateOutputOptions();
 
-    if (apiToken != null && !apiToken.isBlank()) {
-      spec.commandLine()
-          .getErr()
-          .println(
-              "[WARNING] API token supplied via --api-token flag. This may expose the token in "
-                  + "the process table. Prefer the CSI_CODESIGN_API_TOKEN environment variable or "
-                  + "~/.config/codesign/config.properties.");
-    }
-
-    String resolvedToken = TokenResolver.resolve(apiToken);
+    String resolvedToken = resolveToken();
     if (resolvedToken == null) {
       throw new ParameterException(
           spec.commandLine(),
           "No API token found. Provide it via one of the following (in priority order):\n"
-              + "  1. --api-token <token>\n"
-              + "  2. CSI_CODESIGN_API_TOKEN environment variable\n"
-              + "  3. api.token key in ~/.config/codesign/config.properties");
+              + "  1. CSI_CODESIGN_API_TOKEN environment variable\n"
+              + "  2. api.token key in ~/.config/codesign/config.properties");
     }
 
     int timeout = Math.max(1, waitForCompletionTimeout);
@@ -373,6 +352,13 @@ class SignCommand implements Callable<Integer> {
                 + " or --force-overwrite for in-place replacement.");
       }
     }
+  }
+
+  /**
+   * Resolves the API token. Visible for testing: subclasses may override to supply a fixed token.
+   */
+  String resolveToken() {
+    return TokenResolver.resolve();
   }
 
   /**
