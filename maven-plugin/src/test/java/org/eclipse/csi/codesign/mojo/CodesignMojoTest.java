@@ -21,7 +21,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -32,7 +31,6 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Server;
@@ -141,7 +139,6 @@ class CodesignMojoTest {
           }
         };
     setField(mojo, "organizationId", "test-org");
-    setField(mojo, "apiToken", "test-token");
     setField(mojo, "projectId", "my-project");
     setField(mojo, "signingPolicy", "release");
     setField(mojo, "baseUrl", server.url("/Api").toString());
@@ -154,6 +151,14 @@ class CodesignMojoTest {
     setField(mojo, "signProjectArtifact", "false");
     setField(mojo, "signAttachedArtifacts", false);
     setField(mojo, "skip", false);
+    setField(mojo, "serverId", "codesign");
+    Settings settings = new Settings();
+    Server tokenServer = new Server();
+    tokenServer.setId("codesign");
+    tokenServer.setPassword("test-token");
+    settings.addServer(tokenServer);
+    setField(mojo, "settings", settings);
+    setField(mojo, "configFile", tempDir.resolve("nonexistent-config.properties").toFile());
     return mojo;
   }
 
@@ -560,40 +565,29 @@ class CodesignMojoTest {
 
   @Test
   void resolvesApiTokenFromSettingsXml() throws Exception {
-    CodesignMojo mojo =
-        createMojoForTokenResolution(null, DEFAULT_SERVER_ID, "settings-token", null);
+    CodesignMojo mojo = createMojoForTokenResolution(DEFAULT_SERVER_ID, "settings-token", null);
     assertEquals("settings-token", mojo.resolveApiToken());
   }
 
   @Test
   void resolvesApiTokenFromEnvironmentVariable() throws Exception {
-    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, "env-token");
+    CodesignMojo mojo = createMojoForTokenResolution(DEFAULT_SERVER_ID, null, "env-token");
     assertEquals("env-token", mojo.resolveApiToken());
-  }
-
-  @Test
-  void apiTokenParameterTakesPriorityOverSettingsXml() throws Exception {
-    CodesignMojo mojo =
-        createMojoForTokenResolution(
-            "param-token", DEFAULT_SERVER_ID, "settings-token", "env-token");
-    assertEquals("param-token", mojo.resolveApiToken());
   }
 
   @Test
   void settingsXmlTakesPriorityOverEnvVar() throws Exception {
     CodesignMojo mojo =
-        createMojoForTokenResolution(null, DEFAULT_SERVER_ID, "settings-token", "env-token");
+        createMojoForTokenResolution(DEFAULT_SERVER_ID, "settings-token", "env-token");
     assertEquals("settings-token", mojo.resolveApiToken());
   }
 
   @Test
   void failsWithClearErrorWhenNoTokenFound() throws Exception {
-    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, null);
+    CodesignMojo mojo = createMojoForTokenResolution(DEFAULT_SERVER_ID, null, null);
     MojoExecutionException ex =
         assertThrows(MojoExecutionException.class, () -> mojo.resolveApiToken());
     String message = ex.getMessage();
-    assertTrue(message.contains("apiToken"), "Should mention apiToken parameter");
-    assertTrue(message.contains("csi.codesign.apiToken"), "Should mention system property");
     assertTrue(message.contains("settings.xml"), "Should mention settings.xml");
     assertTrue(message.contains("CSI_CODESIGN_API_TOKEN"), "Should mention env var");
     assertTrue(message.contains("csi.codesign.configFile"), "Should mention configFile parameter");
@@ -604,7 +598,7 @@ class CodesignMojoTest {
     Path configFile = tempDir.resolve("config.properties");
     Files.writeString(configFile, "api.token=file-token\n");
 
-    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, null);
+    CodesignMojo mojo = createMojoForTokenResolution(DEFAULT_SERVER_ID, null, null);
     setField(mojo, "configFile", configFile.toFile());
 
     assertEquals("file-token", mojo.resolveApiToken());
@@ -615,7 +609,7 @@ class CodesignMojoTest {
     Path configFile = tempDir.resolve("config.properties");
     Files.writeString(configFile, "api.token=file-token\n");
 
-    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, "env-token");
+    CodesignMojo mojo = createMojoForTokenResolution(DEFAULT_SERVER_ID, null, "env-token");
     setField(mojo, "configFile", configFile.toFile());
 
     assertEquals("env-token", mojo.resolveApiToken());
@@ -623,96 +617,12 @@ class CodesignMojoTest {
 
   @Test
   void resolvesApiTokenFromCustomServerId() throws Exception {
-    CodesignMojo mojo =
-        createMojoForTokenResolution(null, "my-custom-server", "custom-token", null);
+    CodesignMojo mojo = createMojoForTokenResolution("my-custom-server", "custom-token", null);
     assertEquals("custom-token", mojo.resolveApiToken());
   }
 
-  @Test
-  void tokenResolutionPriority_parameter_emitsWarning() throws Exception {
-    List<CharSequence> warnMessages = new ArrayList<>();
-    CodesignMojo mojo =
-        new CodesignMojo(null) {
-          @Override
-          String getEnvironmentVariable(String name) {
-            return null;
-          }
-        };
-    setField(mojo, "apiToken", "param-token");
-    setField(mojo, "serverId", DEFAULT_SERVER_ID);
-    setField(mojo, "settings", new Settings());
-    mojo.setLog(
-        new Log() {
-          @Override
-          public boolean isDebugEnabled() {
-            return false;
-          }
-
-          @Override
-          public void debug(CharSequence msg) {}
-
-          @Override
-          public void debug(CharSequence msg, Throwable t) {}
-
-          @Override
-          public void debug(Throwable t) {}
-
-          @Override
-          public boolean isInfoEnabled() {
-            return true;
-          }
-
-          @Override
-          public void info(CharSequence msg) {}
-
-          @Override
-          public void info(CharSequence msg, Throwable t) {}
-
-          @Override
-          public void info(Throwable t) {}
-
-          @Override
-          public boolean isWarnEnabled() {
-            return true;
-          }
-
-          @Override
-          public void warn(CharSequence msg) {
-            warnMessages.add(msg);
-          }
-
-          @Override
-          public void warn(CharSequence msg, Throwable t) {
-            warnMessages.add(msg);
-          }
-
-          @Override
-          public void warn(Throwable t) {}
-
-          @Override
-          public boolean isErrorEnabled() {
-            return true;
-          }
-
-          @Override
-          public void error(CharSequence msg) {}
-
-          @Override
-          public void error(CharSequence msg, Throwable t) {}
-
-          @Override
-          public void error(Throwable t) {}
-        });
-
-    String resolved = mojo.resolveApiToken();
-    assertEquals("param-token", resolved);
-    assertTrue(
-        warnMessages.stream().anyMatch(m -> m.toString().contains("CSI_CODESIGN_API_TOKEN")),
-        "Expected warning mentioning CSI_CODESIGN_API_TOKEN env var");
-  }
-
   private CodesignMojo createMojoForTokenResolution(
-      String apiToken, String serverId, String serverPassword, String envToken) throws Exception {
+      String serverId, String serverPassword, String envToken) throws Exception {
     CodesignMojo mojo =
         new CodesignMojo(null) {
           @Override
@@ -723,7 +633,6 @@ class CodesignMojoTest {
             return null;
           }
         };
-    setField(mojo, "apiToken", apiToken);
     setField(mojo, "serverId", serverId);
     setField(mojo, "configFile", tempDir.resolve("nonexistent-config.properties").toFile());
 

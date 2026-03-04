@@ -101,7 +101,7 @@ risk ratings, and mitigation actions are documented in the risk assessment.
 
 | Risk | Description | Mitigation |
 | --- | --- | --- |
-| **Token theft (S2)** | If the SignPath API Bearer token is exposed (e.g., in CI logs, process listing, or committed configuration), an attacker can use it to sign malicious artifacts under the affected organisation's identity. | Use `CSI_CODESIGN_API_TOKEN` environment variable or `settings.xml` (plugin) / `config.properties` (CLI). Never pass the token via `-Dcsi.codesign.apiToken` or `--api-token` in shared or logged environments. The tool emits an explicit warning when these insecure paths are used. |
+| **Token theft (S2)** | If the SignPath API Bearer token is exposed (e.g., in CI logs or committed configuration), an attacker can use it to sign malicious artifacts under the affected organisation's identity. | Use `CSI_CODESIGN_API_TOKEN` environment variable, `settings.xml` (plugin), or `~/.config/eclipse-csi-codesign/config.properties` to store the token securely. Never commit the token to version control. |
 | **Supply chain attack (S3, T3)** | A compromised or counterfeit version of the plugin or CLI could sign malicious artifacts or exfiltrate credentials. | Pin the plugin to an exact released version. Verify the Sigstore signature and SLSA provenance attestation before deploying a new version (see §11(a)). |
 | **MITM on signing traffic (S1)** | An attacker intercepting network traffic between the build environment and SignPath could steal the Bearer token or substitute signed artifacts. | HTTPS is enforced by the product; `http://` base URLs are rejected at startup. TLS certificate validation is performed by default using the JVM trust store. |
 
@@ -111,7 +111,7 @@ risk ratings, and mitigation actions are documented in the risk assessment.
 | --- | --- | --- |
 | **Artifact transmitted to cloud (I5)** | The artifact being signed is transmitted to SignPath's cloud infrastructure. | Inherent to the signing service model. Operators handling highly sensitive artifacts should review SignPath's data processing terms and consider on-premises SignPath deployments. |
 | **TOCTOU artifact tampering (T1)** | An attacker with access to the build environment could modify the artifact file between the SHA-256 hash computation and the upload. | The SHA-256 of the artifact is logged before upload. Any discrepancy can be detected by comparing the build log with SignPath's server-side audit records. |
-| **Token exposure in process list (I2)** | Using `--api-token` on a shared host exposes the token to other users via `ps aux`. | Use `CSI_CODESIGN_API_TOKEN` environment variable or `~/.config/codesign/config.properties` instead. |
+| **Token exposure in process list (I2)** | Neither the CLI nor the Maven plugin accept the API token as a command-line argument, eliminating token exposure via process listings. | Use `CSI_CODESIGN_API_TOKEN` environment variable, `settings.xml` (plugin), or `~/.config/eclipse-csi-codesign/config.properties` to supply the token. |
 
 ### Residual risks accepted by operators
 
@@ -307,8 +307,8 @@ The product provides the following security-relevant features:
 | Feature | Description | Output |
 | --- | --- | --- |
 | **HTTPS enforcement** | `http://` base URLs are rejected at startup with a clear error message | `IllegalArgumentException` at build/startup time |
-| **Token source warning** | When `--api-token` or `-Dcsi.codesign.apiToken` is used, a warning directs users to safer alternatives | `[WARN]` in build log / `[WARNING]` to stderr |
-| **Token file permission check** | On POSIX systems, warns if `~/.config/codesign/config.properties` is group- or world-readable | `[WARNING]` to stderr |
+| **No command-line token argument** | Neither the CLI nor the Maven plugin accept the API token as a command-line argument, by design. Token resolution uses environment variables, `settings.xml`, or a config file only. | Architecture-level control; no log output |
+| **Token file permission check** | On POSIX systems, warns if the config file is group- or world-readable. On Windows, warns if any non-owner principal has read access (ACL check). Default path: `~/.config/eclipse-csi-codesign/config.properties`. | `[WARNING]` to stderr |
 | **Pre-upload SHA-256 logging** | SHA-256 of the input artifact is computed and logged before upload | `[INFO]` in build log / stderr |
 | **Post-download SHA-256 logging** | SHA-256 of the signed artifact is computed and logged after download | `[INFO]` in build log / stderr |
 | **Signing request audit trail** | Signing request ID and URL are logged after submission | `[INFO]` in build log / stderr |
@@ -339,23 +339,16 @@ is required.
 If the product has been used in an insecure configuration, take the following remediation
 steps before the next use:
 
-**Token exposed in CI logs (`-Dcsi.codesign.apiToken` was used):**
+**Token committed to version control or embedded in a shared configuration file:**
 
 1. Immediately rotate the SignPath API token in the SignPath portal.
-2. Update the CI/CD pipeline secrets to use the new token via `CSI_CODESIGN_API_TOKEN`.
-3. Remove the `-Dcsi.codesign.apiToken` parameter from all pipeline definitions.
-4. Review the CI log retention policy and consider purging logs that contain the exposed
-   token.
-
-**Token exposed in process listing (`--api-token` was used on a shared host):**
-
-1. Immediately rotate the SignPath API token.
-2. Update the invocation to use `CSI_CODESIGN_API_TOKEN` environment variable or
-   `~/.config/codesign/config.properties`.
+2. Remove the token from the repository history or shared configuration.
+3. Distribute the token only via `CSI_CODESIGN_API_TOKEN` environment variable, `settings.xml`
+   (plugin), or `~/.config/eclipse-csi-codesign/config.properties` on the individual runner.
 
 **`config.properties` with insecure permissions:**
 
-1. Run: `chmod 600 ~/.config/codesign/config.properties`
+1. Run: `chmod 600 ~/.config/eclipse-csi-codesign/config.properties`
 2. Rotate the API token if the file was world-readable and the host is shared.
 
 **Unsigned artifact accidentally shipped (e.g., due to `CSI_CODESIGN_SKIP_SIGNING=1`

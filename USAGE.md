@@ -69,10 +69,7 @@ Both tools authenticate against the SignPath REST API using a Bearer API token.
 
 The plugin resolves the token in this order (first non-blank value wins):
 
-1. **Plugin parameter / system property** — `<apiToken>` in the plugin `<configuration>`, or
-   `-Dcsi.codesign.apiToken=<TOKEN>` on the command line.
-
-2. **Maven `settings.xml`** — password of the server entry whose `<id>` matches `codesign` (or
+1. **Maven `settings.xml`** — password of the server entry whose `<id>` matches `codesign` (or
    the value of the `<serverId>` parameter):
 
    ```xml
@@ -87,21 +84,25 @@ The plugin resolves the token in this order (first non-blank value wins):
 
    Passwords encrypted with `mvn --encrypt-password` are supported.
 
-3. **Environment variable** — `CSI_CODESIGN_API_TOKEN`.
+2. **Environment variable** — `CSI_CODESIGN_API_TOKEN`.
+
+3. **Config file** — `api.token` key in `~/.config/eclipse-csi-codesign/config.properties`
+   (or the path specified by `<configFile>` / `-Dcsi.codesign.configFile`). The file must
+   not be readable by other users (POSIX mode `600` or equivalent Windows ACL). A warning
+   is emitted if the file has insecure permissions.
 
 If none are set, the build fails with an error listing all three options.
 
-> **Security note:** Prefer `settings.xml` or the environment variable over embedding the
-> token in the POM or passing it on the command line, to avoid exposing it in build logs
-> and version control.
+> **Security note:** Prefer `settings.xml` or the environment variable over the config file
+> for CI/CD environments. Never hard-code the token in the POM.
 
 ### CLI Authentication
 
 The CLI resolves the token in this order (first non-blank value wins):
 
-1. **`--api-token <token>`** CLI option.
-2. **`CSI_CODESIGN_API_TOKEN`** environment variable.
-3. **Config file** — `api.token` key in `~/.config/codesign/config.properties`:
+1. **`CSI_CODESIGN_API_TOKEN`** environment variable.
+2. **Config file** — `api.token` key in `~/.config/eclipse-csi-codesign/config.properties`
+   (or the path specified by `--config-file`):
 
    ```properties
    api.token=YOUR_API_TOKEN_HERE
@@ -109,8 +110,7 @@ The CLI resolves the token in this order (first non-blank value wins):
 
 If none are set, the CLI prints a descriptive error and exits with code 2.
 
-> **Security note:** Prefer the environment variable or config file over `--api-token` to avoid
-> the token appearing in shell history.
+> **Security note:** Prefer the environment variable or config file to avoid token exposure.
 
 ---
 
@@ -217,7 +217,7 @@ Reference documentation is published on the [project site](https://eclipse-csi.g
 
 | Variable | Tool | Description |
 | --- | --- | --- |
-| `CSI_CODESIGN_API_TOKEN` | Both | SignPath API token. Lower priority than `--api-token` / `<apiToken>`; higher priority than the CLI config file. |
+| `CSI_CODESIGN_API_TOKEN` | Both | SignPath API token. Lower priority than `settings.xml` (plugin); higher priority than the config file. |
 | `CSI_CODESIGN_SKIP_SIGNING` | Plugin only | Set to `1`, `true`, or `yes` (case-insensitive) to skip signing unconditionally. |
 
 ---
@@ -336,8 +336,9 @@ whichever comes first.
 ## Troubleshooting
 
 **"No API token found"**
-No token source is configured. Set `CSI_CODESIGN_API_TOKEN` in the environment, add a
-`codesign` server to `~/.m2/settings.xml` (plugin), or pass `--api-token` / `<apiToken>`.
+No token source is configured. Add a `codesign` server entry to `~/.m2/settings.xml`, set
+`CSI_CODESIGN_API_TOKEN` in the environment, or store the token in
+`~/.config/eclipse-csi-codesign/config.properties` (key `api.token`).
 
 **HTTP 401 Unauthorized**
 The token is invalid, expired, or does not have permission to submit signing requests for

@@ -56,7 +56,8 @@ model, artifact registry, and `settings.xml` for configuration and credential re
 
 **CLI binary:** Invoked as a build step in CI/CD workflow definitions (e.g., a GitHub
 Actions `run:` step). It receives configuration via command-line arguments, environment
-variables, and a user-managed configuration file (`~/.config/codesign/config.properties`).
+variables, and a user-managed configuration file (default:
+`~/.config/eclipse-csi-codesign/config.properties`, overridable via `--config-file`).
 
 **API library:** Added as a Maven or Gradle dependency and used programmatically from
 JVM-based build tooling or applications.
@@ -108,20 +109,22 @@ retry with configurable exponential-like backoff for HTTP 429, 502, 503, 504 res
 and connection/read timeout errors. Package-private to prevent external instantiation.
 
 **`CodesignMojo`** (`maven-plugin` module) — The Maven plugin's `@Mojo`-annotated entry
-point. Resolves the Bearer token from the priority-ordered chain (plugin parameter →
-`settings.xml` → environment variable), emits a `WARN` log when the plugin parameter path
-is used, constructs a `CodesignClient`, delegates to `SigningWorkflow`, and logs the
-post-download SHA-256.
+point. Resolves the Bearer token from the priority-ordered chain (`settings.xml` →
+`CSI_CODESIGN_API_TOKEN` environment variable → config file), applies the same POSIX/ACL
+permission check to the config file as the CLI, constructs a `CodesignClient`, delegates
+to `SigningWorkflow`, and logs the post-download SHA-256.
 
 **`SignCommand`** (`cli` module, package-private) — The picocli `@Command`-annotated class
-implementing the `sign` subcommand. Resolves the Bearer token via `TokenResolver`, emits
-a `[WARNING]` to stderr when `--api-token` is used, constructs a `CodesignClient`,
-delegates to `SigningWorkflow`, and logs the post-download SHA-256.
+implementing the `sign` subcommand. Resolves the Bearer token via `TokenResolver`,
+constructs a `CodesignClient`, delegates to `SigningWorkflow`, and logs the post-download
+SHA-256. The `--config-file` option is available to override the config file path.
 
 **`TokenResolver`** (`cli` module, package-private) — Implements the CLI's priority-ordered
-token resolution: `--api-token` flag → `CSI_CODESIGN_API_TOKEN` environment variable →
-`~/.config/codesign/config.properties`. On POSIX systems, checks POSIX file permissions
-of `config.properties` and emits a warning if group- or world-readable.
+token resolution: `CSI_CODESIGN_API_TOKEN` environment variable →
+`~/.config/eclipse-csi-codesign/config.properties` (or the path from `--config-file`).
+On POSIX systems, checks file permissions and emits a warning if group- or world-readable.
+On Windows, checks NTFS/ReFS ACLs and warns if any non-owner principal has `READ_DATA`
+access.
 
 #### Software design explanation (relevant elements)
 
@@ -209,7 +212,7 @@ correctly in the native image.
 | **Immutable `Config` record** — `CodesignClient.Config` is a Java `record`; all fields are final. | Eliminates TOCTOU risks in configuration; ensures the same security parameters apply throughout a signing operation. | §2(e) |
 | **SHA-256 audit log (pre-upload and post-download)** — `SigningWorkflow` computes and logs SHA-256 of the input artifact before upload, and of the signed artifact after download. | Provides a tamper-evident client-side record that can be correlated with SignPath's server-side audit logs. Enables forensic detection of TOCTOU tampering and MITM substitution. | §2(e)(j)(k) |
 | **Token source warning system** — explicit `[WARN]` / `[WARNING]` emitted when the token is supplied via CLI flag or Maven system property. | Guides operators away from credential paths that expose the token in process listings or build logs, without breaking backward compatibility. | §2(c)(d) |
-| **POSIX permission check on `config.properties`** — `TokenResolver` warns if the file is group- or world-readable on POSIX systems. | Reduces the risk of token exposure from misconfigured file permissions on shared build hosts. | §2(c) |
+| **File permission check on `config.properties`** — `TokenResolver` (and `CodesignMojo`) warn if the config file is group- or world-readable on POSIX systems; on Windows, warns if any non-owner principal has `READ_DATA` access via ACL inspection. | Reduces the risk of token exposure from misconfigured file permissions on shared build hosts across all supported platforms. | §2(c) |
 | **Package-private internal classes** — `RetryInterceptor`, `TokenResolver`, `SignCommand`, `SignProjectArtifact` are not `public`. | Minimises the API attack surface; external code cannot instantiate or subclass internal implementation classes. | §2(i) |
 | **Atomic file writes** — temporary file with `.codesign-tmp` suffix, then atomic rename. | Prevents partially-written signed artifacts from being treated as valid outputs if the process is interrupted. | §2(e) |
 | **No shell invocation, no dynamic class loading** | Eliminates command injection and class loading attack vectors. | §2(i) |
@@ -218,7 +221,7 @@ correctly in the native image.
 
 | Default behaviour | Security rationale |
 | --- | --- |
-| Token resolution order: env var preferred over CLI flag | The environment variable is not visible in process listings; the CLI flag is. |
+| Token resolution order: `settings.xml` → env var → config file; no command-line token argument | The token is never passed as a CLI argument, eliminating exposure via process listings. The environment variable is not visible in process listings. |
 | `signProjectArtifact=auto` — skips `pom` packaging | Avoids accidentally uploading non-binary Maven POM artifacts for signing. |
 | `failOnNoFilesFound=false` — warns but does not fail | Build continues if no files match; operators in release pipelines should override to `true`. |
 | `maxRetries=10`, `retryTimeout=600s` | Bounds retry behaviour to prevent excessive resource consumption. |

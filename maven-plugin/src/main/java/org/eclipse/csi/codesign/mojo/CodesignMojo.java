@@ -60,8 +60,8 @@ import org.eclipse.csi.codesign.SigningWorkflow;
  * matching files for signing, polls each request until a final status is reached, and downloads the
  * signed artifact (either in-place or to the configured output directory).
  *
- * <p>API authentication is resolved from plugin configuration, Maven {@code settings.xml}, or the
- * {@code CSI_CODESIGN_API_TOKEN} environment variable.
+ * <p>API authentication is resolved from Maven {@code settings.xml}, the {@code
+ * CSI_CODESIGN_API_TOKEN} environment variable, or a config file.
  */
 @Mojo(name = "codesign", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class CodesignMojo extends AbstractMojo {
@@ -85,15 +85,6 @@ public class CodesignMojo extends AbstractMojo {
    */
   @Parameter(property = "csi.codesign.organizationId", required = true)
   private String organizationId;
-
-  /**
-   * SignPath API token provided directly in plugin configuration or as a system property.
-   *
-   * <p>Optional. Mapped to {@code -Dcsi.codesign.apiToken}. If not provided, token resolution falls
-   * back to {@code settings.xml} and environment variables.
-   */
-  @Parameter(property = "csi.codesign.apiToken")
-  private String apiToken;
 
   /**
    * Maven server ID used to resolve the API token from {@code settings.xml} server password.
@@ -443,7 +434,6 @@ public class CodesignMojo extends AbstractMojo {
    * Resolves the SignPath API token in the following order:
    *
    * <ol>
-   *   <li>{@code csi.codesign.apiToken} parameter / system property
    *   <li>Maven {@code settings.xml} server password for {@code serverId}
    *   <li>{@value #CSI_CODESIGN_API_TOKEN} environment variable
    *   <li>{@code api.token} key in the config file ({@code csi.codesign.configFile})
@@ -453,15 +443,6 @@ public class CodesignMojo extends AbstractMojo {
    * @throws MojoExecutionException if no token source is configured
    */
   String resolveApiToken() throws MojoExecutionException {
-    if (apiToken != null && !apiToken.isBlank()) {
-      getLog()
-          .warn(
-              "API token supplied via plugin parameter or -Dcsi.codesign.apiToken system property."
-                  + " This may expose the token in build logs. Prefer the CSI_CODESIGN_API_TOKEN"
-                  + " environment variable or Maven settings.xml.");
-      return apiToken;
-    }
-
     if (settings != null) {
       Server server = settings.getServer(serverId);
       if (server != null) {
@@ -497,14 +478,13 @@ public class CodesignMojo extends AbstractMojo {
 
     throw new MojoExecutionException(
         "No API token found. Provide it via one of the following (in priority order):\n"
-            + "  1. <apiToken> parameter or -Dcsi.codesign.apiToken system property\n"
-            + "  2. Server password in settings.xml with server ID '"
+            + "  1. Server password in settings.xml with server ID '"
             + serverId
             + "'\n"
-            + "  3. "
+            + "  2. "
             + CSI_CODESIGN_API_TOKEN
             + " environment variable\n"
-            + "  4. api.token key in "
+            + "  3. api.token key in "
             + configFile
             + " (override with -Dcsi.codesign.configFile)");
   }

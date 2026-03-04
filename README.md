@@ -21,7 +21,7 @@ codesign sign app.exe \
   --output app-signed.exe
 ```
 
-Set `CSI_CODESIGN_API_TOKEN` (or use `--api-token`) for authentication.
+Set `CSI_CODESIGN_API_TOKEN` for authentication.
 
 ### Maven Plugin
 

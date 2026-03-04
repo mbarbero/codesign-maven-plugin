@@ -32,7 +32,7 @@ The product is an **open-source Eclipse CSI project** distributed via Maven Cent
 **Reasonably foreseeable misuse scenarios:**
 
 * A build engineer embeds the API token in a public repository's `pom.xml` or CI log.
-* A developer invokes the CLI with `--api-token` on a shared build server, exposing the token via the process table.
+* A build engineer embeds the API token in a public repository's `pom.xml` or CI log.
 * An attacker targeting a downstream software project compromises the signing pipeline to sign a malicious artifact.
 * A dependency confusion attack delivers a fake `org.eclipse.csi:codesign-maven-plugin` JAR.
 
@@ -120,7 +120,7 @@ Risk is rated **High (H) / Medium (M) / Low (L)** using the DREAD-inspired scale
 | **T1** | Attacker modifies the artifact on disk between collection and upload (TOCTOU); a malicious binary is signed by SignPath and distributed as trusted | DF2, DF3 | **M** | SHA-256 of the artifact computed and logged before upload (`SigningWorkflow.submitAndWait()`); any post-hash modification leaves a traceable discrepancy between the build log and SignPath's server-side record |
 | **T2** | Attacker intercepts the signed artifact download (MITM) and substitutes a malicious binary; tool writes it atomically to the output path | DF5, DF6 | **M** | HTTPS TLS integrity; SHA-256 of the signed artifact computed and logged after download (Mojo + CLI); tampering produces a build log entry that can be correlated with the server-side record |
 | **T3** | Attacker compromises the codesign plugin/CLI JAR in Maven Central or GitHub Releases (e.g., via compromised release key, build pipeline compromise) | DF7 | **H** | Sigstore keyless signing; GPG signatures; SLSA attestations; harden-runner in CI; SHA-pinned Actions; Trivy vulnerability scanning; no long-lived signing secrets in CI |
-| **T4** | Attacker modifies `~/.config/codesign/config.properties` or `settings.xml` on a shared build server to inject a different token (signing under a different policy) | DF1 | **M** | Standard OS file permissions; outside tool's control |
+| **T4** | Attacker modifies `~/.config/eclipse-csi-codesign/config.properties` or `settings.xml` on a shared build server to inject a different token (signing under a different policy) | DF1 | **M** | Standard OS file permissions; outside tool's control |
 | **T5** | Malicious `--param key=value` values injected via CI pipeline inputs; server-side interpretation of parameters could trigger unintended signing policy behaviour | DF3 | **L** | Parameters are passed as opaque key-value pairs; no validation of values |
 
 ### 3.3 Repudiation
@@ -134,9 +134,9 @@ Risk is rated **High (H) / Medium (M) / Low (L)** using the DREAD-inspired scale
 
 | ID | Threat | Data Flow | Risk | Existing controls |
 | --- | --- | --- | --- | --- |
-| **I1** | Bearer token exposed in CI/CD logs: token passed as `-Dcsi.codesign.apiToken=<TOKEN>` system property is printed by Maven's own log output (not by the plugin) | DF1 | **M** | Explicit `[WARN]` emitted by the plugin when token comes from the parameter source, directing users to `CSI_CODESIGN_API_TOKEN` environment variable or `settings.xml`; root cause (Maven printing system properties) is outside tool control |
-| **I2** | Bearer token exposed in process listing: `--api-token` CLI flag value is visible via `ps aux` on shared build hosts | DF1 | **M** | Explicit `[WARNING]` printed to stderr when `--api-token` is used, directing users to the environment variable or `config.properties`; flag is not removed to preserve backward compatibility |
-| **I3** | Bearer token stored in plaintext in `~/.config/codesign/config.properties` with insecure OS file permissions | DF1 | **L** | `TokenResolver` checks POSIX file permissions at token-read time; emits warning with `chmod 600` guidance when file is group- or world-readable; check skipped on non-POSIX filesystems |
+| **I1** | Bearer token committed to version control or embedded in a shared configuration file | DF1 | **M** | Token resolution uses `settings.xml`, environment variables, or a permission-checked config file; the token is never read from the POM or a project-committed file. Operators are advised to use CI secrets management. |
+| **I2** | Bearer token exposed in process listing via a command-line argument | DF1 | **L** | Neither the CLI nor the Maven plugin accept the API token as a command-line argument. Token resolution uses `settings.xml`, environment variables, or the config file only. |
+| **I3** | Bearer token stored in plaintext in `~/.config/eclipse-csi-codesign/config.properties` with insecure OS file permissions | DF1 | **L** | `TokenResolver` (and `CodesignMojo`) check file permissions at token-read time: POSIX `chmod 600` check on Linux/macOS; ACL-based check on Windows (warns if any non-owner principal has `READ_DATA` access). Both emit a `[WARNING]` with remediation guidance. |
 | **I4** | Exception messages from `CodesignException` include the raw HTTP response body from SignPath, which could contain sensitive server-side details | DF3–DF5 | **L** | Exception details are typically caught and logged by Maven/CLI; not transmitted further; formal audit pending (DV-7) |
 | **I5** | Proprietary artifact content (compiled code, executable) is transmitted to SignPath's cloud infrastructure | DF3 | **M** | Inherent to service model; not a software defect but must be documented for deployers |
 | **I6** | Internal project metadata (project slug, signing policy slug, custom parameters) is transmitted to SignPath and visible in their audit logs | DF3 | **L** | Inherent to service model |
@@ -170,8 +170,8 @@ Risk is rated **High (H) / Medium (M) / Low (L)** using the DREAD-inspired scale
 | T1 | Tampering | TOCTOU: pre-upload artifact tamper | M | P2 |
 | T2 | Tampering | MITM on signed artifact download | M | P2 |
 | T4 | Tampering | Credential file tampering on shared host | M | P2 |
-| I1 | Info Disclosure | Token in Maven log via `-D` property | M | P2 |
-| I2 | Info Disclosure | Token in process list via `--api-token` flag | M | P2 |
+| I1 | Info Disclosure | Token committed to version control or embedded in shared config | M | P2 |
+| I2 | Info Disclosure | Token exposure via command-line argument (by design: no CLI arg accepted) | L | P3 |
 | I5 | Info Disclosure | Artifact content transmitted to cloud | M | P2 |
 | R2 | Repudiation | Shared token prevents attribution | M | P2 |
 | D1 | Denial of Service | SignPath outage blocks release pipeline | M | P2 |
@@ -211,8 +211,8 @@ Risk is rated **High (H) / Medium (M) / Low (L)** using the DREAD-inspired scale
 | --- | --- | --- | --- |
 | **DS-1** | **Enforce HTTPS-only for `baseUrl`:** add validation in `CodesignClient` that rejects any `baseUrl` that does not start with `https://`. Throw an `IllegalArgumentException` at configuration time, not at request time. | ✅ `CodesignClient.java:73` | S1, S4, E1 |
 | **DS-2** | **Design a client-side artifact hash audit record:** before uploading, compute the SHA-256 of the input artifact and log it together with the signing request ID returned by SignPath. After download, re-compute the SHA-256 of the signed artifact and log it. | ✅ `SigningWorkflow`, `CodesignMojo`, `SignCommand` | T1, T2, R1 |
-| **DS-3** | **Emit a visible warning when insecure token sources are used:** emit a `[WARNING]` when `--api-token` or `-Dcsi.codesign.apiToken` is used, directing users to the environment variable or config file. | ✅ `CodesignMojo.java:424`, `SignCommand.java:193` | I1, I2 |
-| **DS-4** | **`config.properties` permission guidance:** update `TokenResolver` to check (on POSIX systems) that `~/.config/codesign/config.properties` is not world-readable and emit a `[WARNING]` if it is. Document the required file permission (`chmod 600`). | ✅ `TokenResolver.java:64` | I3 |
+| **DS-3** | **Prevent token exposure via process listings by design:** neither the CLI nor the Maven plugin accept the API token as a command-line argument. Token resolution is restricted to `settings.xml`, environment variables, and the config file. | ✅ Architecture-level control; no CLI token arg | I2 |
+| **DS-4** | **`config.properties` permission guidance:** check that `~/.config/eclipse-csi-codesign/config.properties` is not readable by other users and emit a `[WARNING]` if it is. Cover both POSIX (`chmod 600`) and Windows (ACL check). The check is also applied in `CodesignMojo`. | ✅ `TokenResolver.java`, `CodesignMojo.java` | I3 |
 | **DS-5** | **Design a `--skip-on-unavailable` / `skipOnSigningServiceUnavailable` option** (false by default): when enabled, if the SignPath service is unavailable after the retry window, the build continues but the artifact is not signed and a clear warning is emitted. | Open | D1 |
 
 ### 5.3 Development Phase
@@ -223,8 +223,8 @@ Risk is rated **High (H) / Medium (M) / Low (L)** using the DREAD-inspired scale
 | --- | --- | --- | --- |
 | **DV-1** | **HTTPS enforcement** in `CodesignClient(Config)` constructor; unit test `httpBaseUrlIsRejected` added. | ✅ | S1, S4, E1 |
 | **DV-2** | **SHA-256 artifact hash logging** (pre-upload in `SigningWorkflow`; post-download in `CodesignMojo` and `SignCommand`); `SigningWorkflowTest` verifies log ordering and hash format. | ✅ | T1, T2, R1 |
-| **DV-3** | **Token source warnings**: `CodesignMojo` emits `WARN` when token comes from plugin parameter; `SignCommand` emits `[WARNING]` to stderr when `--api-token` is used; tests in `CodesignMojoTest` and `SignCommandTest`. | ✅ | I1, I2 |
-| **DV-4** | **POSIX permission check** in `TokenResolver` (4-arg overload with `Consumer<String> warnLogger`); `TokenResolverTest.configFileWithGroupReadPermissionEmitsWarning` (`@DisabledOnOs(WINDOWS)`). | ✅ | I3 |
+| **DV-3** | **No command-line token argument**: neither `SignCommand` nor `CodesignMojo` expose a CLI/parameter path for the API token. Token resolution is tested via `CodesignMojoTest` (settings.xml, env var, config file paths) and `SignCommandIntegrationTest`. | ✅ | I2 |
+| **DV-4** | **File permission check** in `TokenResolver` and `CodesignMojo`: POSIX check (`chmod 600`) + Windows ACL check (warns if any non-owner principal has `READ_DATA` access). Jimfs in-memory filesystem used in tests so checks run on all platforms without `@EnabledOnOs`/`@DisabledOnOs` guards. | ✅ | I3 |
 | **DV-5** | **Trivy vulnerability scanner** added as `trivy` job in `ci-guardrails.yml`; scans for HIGH/CRITICAL unfixed vulnerabilities; uploads SARIF to GitHub Security. | ✅ | S3, T3 |
 | **DV-6** | **Dependabot** for automated Maven + Actions dependency update PRs. | ✅ `dependabot.yml` in place | T3, S3 |
 | **DV-7** | **Audit `CodesignException` for information leakage:** verify no token value, full request URL with embedded credentials, or other sensitive data is included in exception messages. | Open | I4 |
@@ -416,7 +416,7 @@ The following table addresses each of the 12 specific requirements in Part I, po
 | --- | --- |
 | **Applicable** | Yes |
 | **Assessment** | The product emits security-relevant log entries covering credential warnings, artifact hashes, and signing request identifiers. |
-| **Implementation** | The following security-relevant events are logged: (a) token source warning when `--api-token` or `-Dcsi.codesign.apiToken` is used (WARNING level); (b) SHA-256 of input artifact before upload (INFO level); (c) signing request ID and URL after submission (INFO level); (d) SHA-256 of signed artifact after download (INFO level); (e) POSIX permission warnings for `config.properties` (WARNING level). Log output is directed to the Maven logger (plugin) or stderr (CLI). Log level can be suppressed via Maven's `-q` flag or CLI log configuration, but this would also suppress all other output. The product does not independently manage log storage or protect log integrity — this is the responsibility of the CI/CD system and build log retention policy. |
+| **Implementation** | The following security-relevant events are logged: (a) SHA-256 of input artifact before upload (INFO level); (b) signing request ID and URL after submission (INFO level); (c) SHA-256 of signed artifact after download (INFO level); (d) file permission warnings for `~/.config/eclipse-csi-codesign/config.properties` on POSIX and Windows (WARNING level). Log output is directed to the Maven logger (plugin) or stderr (CLI). Log level can be suppressed via Maven's `-q` flag or CLI log configuration, but this would also suppress all other output. The product does not independently manage log storage or protect log integrity — this is the responsibility of the CI/CD system and build log retention policy. |
 | **Residual risk** | No opt-out mechanism specifically for security audit logging is provided; the CRA requirement for an opt-out possibility is interpreted as applying to optional monitoring features rather than mandatory audit logging. |
 | **Threat IDs** | I1, I2, I3, T1, T2, R1 |
 

@@ -34,10 +34,7 @@ Add the plugin to your project's `pom.xml`:
 
 The plugin resolves the API token in the following order (first match wins):
 
-1. **Plugin parameter / system property** — `<apiToken>` in the plugin configuration,
-   or `-Dcsi.codesign.apiToken=<TOKEN>` on the command line.
-
-2. **Maven `settings.xml`** — the password of the server entry whose `<id>` matches
+1. **Maven `settings.xml`** — the password of the server entry whose `<id>` matches
    `codesign` (or the value of `<serverId>` in the plugin configuration):
 
    ```xml
@@ -52,7 +49,11 @@ The plugin resolves the API token in the following order (first match wins):
 
    Passwords encrypted with `mvn --encrypt-password` are supported.
 
-3. **Environment variable** — `CSI_CODESIGN_API_TOKEN`.
+2. **Environment variable** — `CSI_CODESIGN_API_TOKEN`.
+
+3. **Config file** — `api.token` key in
+   `~/.config/eclipse-csi-codesign/config.properties` (override path with
+   `-Dcsi.codesign.configFile`).
 
 If none of these are set, the build fails with an error that lists all three options.
 
