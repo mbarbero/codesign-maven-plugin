@@ -69,7 +69,11 @@ public class CodesignClient implements AutoCloseable {
    * @param config the client configuration
    */
   public CodesignClient(Config config) {
-    if (!config.baseUrl().startsWith("https://")) {
+    // localhost/127.0.0.1 are exempted: traffic never leaves the machine, and this allows
+    // integration tests to connect to a local mock server over plain HTTP.
+    if (!config.baseUrl().startsWith("https://")
+        && !config.baseUrl().startsWith("http://localhost")
+        && !config.baseUrl().startsWith("http://127.0.0.1")) {
       throw new IllegalArgumentException("baseUrl must use HTTPS. Got: " + config.baseUrl());
     }
     this.baseUrl = config.baseUrl();
