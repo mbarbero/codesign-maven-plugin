@@ -447,11 +447,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_synopsis">Synopsis</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><strong>codesign sign</strong> [<strong>-hvV</strong>] [<strong>--force-overwrite</strong>] [<strong>--api-token</strong>=<em>&lt;token&gt;</em>]
-              [<strong>--artifact-configuration</strong>=<em>&lt;slug&gt;</em>] [<strong>--base-url</strong>=<em>&lt;url&gt;</em>]
-              [<strong>--description</strong>=<em>&lt;text&gt;</em>] <strong>-O</strong>=<em>&lt;id&gt;</em> [<strong>--output</strong>=<em>&lt;file&gt;</em>]
-              [<strong>--output-dir</strong>=<em>&lt;dir&gt;</em>] <strong>-p</strong>=<em>&lt;slug&gt;</em> <strong>-s</strong>=<em>&lt;slug&gt;</em>
-              [<strong>--wait-for-completion-timeout</strong>=<em>&lt;seconds&gt;</em>]
+<p><strong>codesign sign</strong> [<strong>-hvV</strong>] [<strong>--force-overwrite</strong>] [<strong>--artifact-configuration</strong>=<em>&lt;slug&gt;</em>]
+              [<strong>--base-url</strong>=<em>&lt;url&gt;</em>] [<strong>--config-file</strong>=<em>&lt;file&gt;</em>] [<strong>--description</strong>=<em>&lt;text&gt;</em>]
+              <strong>-O</strong>=<em>&lt;id&gt;</em> [<strong>--output</strong>=<em>&lt;file&gt;</em>] [<strong>--output-dir</strong>=<em>&lt;dir&gt;</em>] <strong>-p</strong>=<em>&lt;slug&gt;</em>
+              <strong>-s</strong>=<em>&lt;slug&gt;</em> [<strong>--wait-for-completion-timeout</strong>=<em>&lt;seconds&gt;</em>]
               [<strong>--param</strong>=<em>&lt;key&gt;=&lt;value&gt;</em>]&#8230;&#8203; <em>&lt;file&gt;</em>&#8230;&#8203;</p>
 </div>
 </div>
@@ -493,9 +492,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <dd>
 <p>Custom parameter forwarded to SignPath (repeatable). Format: --param key=value --param key2=value2</p>
 </dd>
-<dt class="hdlist1"><strong>--api-token</strong>=<em>&lt;token&gt;</em></dt>
+<dt class="hdlist1"><strong>--config-file</strong>=<em>&lt;file&gt;</em></dt>
 <dd>
-<p>SignPath API token. Falls back to null environment variable, then to api.token in ~/.config/codesign/config.properties.</p>
+<p>Path to a properties file containing api.token (default: ~/.config/eclipse-csi-codesign/config.properties).</p>
 </dd>
 <dt class="hdlist1"><strong>--output-dir</strong>=<em>&lt;dir&gt;</em></dt>
 <dd>
@@ -550,7 +549,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="footer">
 <div id="footer-text">
 Version <br>
-Last updated 2026-03-03 09:58:36 UTC
+Last updated 2026-03-04 23:19:53 UTC
 </div>
 </div>
 </body>
