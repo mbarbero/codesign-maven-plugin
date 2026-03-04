@@ -17,10 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.eclipse.csi.codesign.CodesignClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,8 +54,42 @@ class SignCommandIntegrationTest {
     server.shutdown();
   }
 
+  /**
+   * A test-only SignCommand that overrides buildClient to use MockWebServer (HTTP) without
+   * triggering the HTTPS enforcement check in CodesignClient(Config).
+   */
+  private final SignCommand testSignCommand =
+      new SignCommand() {
+        @Override
+        CodesignClient buildClient(CodesignClient.Config config) {
+          try {
+            Constructor<CodesignClient> ctor =
+                CodesignClient.class.getDeclaredConstructor(
+                    OkHttpClient.class, String.class, String.class, String.class);
+            ctor.setAccessible(true);
+            return ctor.newInstance(
+                new OkHttpClient(), config.baseUrl(), config.organizationId(), config.apiToken());
+          } catch (Exception e) {
+            throw new RuntimeException("Test client creation failed", e);
+          }
+        }
+      };
+
   private CommandLine cli() {
-    return new CommandLine(new CodesignCli())
+    // Use picocli IFactory to inject the test SignCommand instance so that MockWebServer
+    // (HTTP-only) bypasses the HTTPS enforcement in CodesignClient(Config).
+    return new CommandLine(
+            new CodesignCli(),
+            new CommandLine.IFactory() {
+              @Override
+              @SuppressWarnings("unchecked")
+              public <K> K create(Class<K> cls) throws Exception {
+                if (cls == SignCommand.class) {
+                  return (K) testSignCommand;
+                }
+                return CommandLine.defaultFactory().create(cls);
+              }
+            })
         .setOut(new PrintWriter(new StringWriter()))
         .setErr(new PrintWriter(new StringWriter()))
         .setExecutionExceptionHandler(new PrintExceptionMessageHandler());

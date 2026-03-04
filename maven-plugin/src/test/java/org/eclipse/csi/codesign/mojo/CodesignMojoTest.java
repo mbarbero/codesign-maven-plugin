@@ -17,10 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.maven.artifact.Artifact;
@@ -29,10 +32,12 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
+import org.eclipse.csi.codesign.CodesignClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,8 +113,33 @@ class CodesignMojoTest {
     server.shutdown();
   }
 
+  /**
+   * Creates a test client via the package-private CodesignClient constructor (bypasses the HTTPS
+   * enforcement), accessed via reflection since the test is in a different package.
+   */
+  private static CodesignClient testClient(String baseUrl, String orgId, String token)
+      throws Exception {
+    Constructor<CodesignClient> ctor =
+        CodesignClient.class.getDeclaredConstructor(
+            OkHttpClient.class, String.class, String.class, String.class);
+    ctor.setAccessible(true);
+    return ctor.newInstance(new OkHttpClient(), baseUrl, orgId, token);
+  }
+
   private CodesignMojo createMojo() throws Exception {
-    CodesignMojo mojo = new CodesignMojo(null);
+    // Override buildClient to use the package-private constructor (bypasses HTTPS check)
+    // so tests can use MockWebServer which runs on plain HTTP.
+    CodesignMojo mojo =
+        new CodesignMojo(null) {
+          @Override
+          CodesignClient buildClient(CodesignClient.Config config) {
+            try {
+              return testClient(config.baseUrl(), config.organizationId(), config.apiToken());
+            } catch (Exception e) {
+              throw new RuntimeException("Test client creation failed", e);
+            }
+          }
+        };
     setField(mojo, "organizationId", "test-org");
     setField(mojo, "apiToken", "test-token");
     setField(mojo, "projectId", "my-project");
@@ -573,6 +603,89 @@ class CodesignMojoTest {
     CodesignMojo mojo =
         createMojoForTokenResolution(null, "my-custom-server", "custom-token", null);
     assertEquals("custom-token", mojo.resolveApiToken());
+  }
+
+  @Test
+  void tokenResolutionPriority_parameter_emitsWarning() throws Exception {
+    List<CharSequence> warnMessages = new ArrayList<>();
+    CodesignMojo mojo =
+        new CodesignMojo(null) {
+          @Override
+          String getEnvironmentVariable(String name) {
+            return null;
+          }
+        };
+    setField(mojo, "apiToken", "param-token");
+    setField(mojo, "serverId", DEFAULT_SERVER_ID);
+    setField(mojo, "settings", new Settings());
+    mojo.setLog(
+        new Log() {
+          @Override
+          public boolean isDebugEnabled() {
+            return false;
+          }
+
+          @Override
+          public void debug(CharSequence msg) {}
+
+          @Override
+          public void debug(CharSequence msg, Throwable t) {}
+
+          @Override
+          public void debug(Throwable t) {}
+
+          @Override
+          public boolean isInfoEnabled() {
+            return true;
+          }
+
+          @Override
+          public void info(CharSequence msg) {}
+
+          @Override
+          public void info(CharSequence msg, Throwable t) {}
+
+          @Override
+          public void info(Throwable t) {}
+
+          @Override
+          public boolean isWarnEnabled() {
+            return true;
+          }
+
+          @Override
+          public void warn(CharSequence msg) {
+            warnMessages.add(msg);
+          }
+
+          @Override
+          public void warn(CharSequence msg, Throwable t) {
+            warnMessages.add(msg);
+          }
+
+          @Override
+          public void warn(Throwable t) {}
+
+          @Override
+          public boolean isErrorEnabled() {
+            return true;
+          }
+
+          @Override
+          public void error(CharSequence msg) {}
+
+          @Override
+          public void error(CharSequence msg, Throwable t) {}
+
+          @Override
+          public void error(Throwable t) {}
+        });
+
+    String resolved = mojo.resolveApiToken();
+    assertEquals("param-token", resolved);
+    assertTrue(
+        warnMessages.stream().anyMatch(m -> m.toString().contains("CSI_CODESIGN_API_TOKEN")),
+        "Expected warning mentioning CSI_CODESIGN_API_TOKEN env var");
   }
 
   private CodesignMojo createMojoForTokenResolution(

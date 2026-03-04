@@ -16,6 +16,8 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -190,6 +192,15 @@ class SignCommand implements Callable<Integer> {
     validateFiles();
     validateOutputOptions();
 
+    if (apiToken != null && !apiToken.isBlank()) {
+      spec.commandLine()
+          .getErr()
+          .println(
+              "[WARNING] API token supplied via --api-token flag. This may expose the token in "
+                  + "the process table. Prefer the CSI_CODESIGN_API_TOKEN environment variable or "
+                  + "~/.config/codesign/config.properties.");
+    }
+
     String resolvedToken = TokenResolver.resolve(apiToken);
     if (resolvedToken == null) {
       throw new ParameterException(
@@ -230,7 +241,7 @@ class SignCommand implements Callable<Integer> {
             retryInterval,
             maxRetries);
 
-    try (CodesignClient client = new CodesignClient(config)) {
+    try (CodesignClient client = buildClient(config)) {
       SigningWorkflow workflow =
           new SigningWorkflow(
               client,
@@ -290,6 +301,7 @@ class SignCommand implements Callable<Integer> {
         // Fallback for cross-filesystem moves or platforms that don't support atomic rename
         Files.move(tmpPath, outputPath, StandardCopyOption.REPLACE_EXISTING);
       }
+      spec.commandLine().getOut().println("Signed artifact SHA-256: " + sha256Hex(outputPath));
     } finally {
       Files.deleteIfExists(tmpPath);
     }
@@ -360,6 +372,29 @@ class SignCommand implements Callable<Integer> {
             "No output specified. Use --output <path>, --output-dir <dir>,"
                 + " or --force-overwrite for in-place replacement.");
       }
+    }
+  }
+
+  /**
+   * Creates a {@link CodesignClient} from the given configuration.
+   *
+   * <p>Visible for testing: subclasses may override this to inject a pre-built client backed by a
+   * mock server without triggering the HTTPS URL check.
+   */
+  CodesignClient buildClient(CodesignClient.Config config) {
+    return new CodesignClient(config);
+  }
+
+  private static String sha256Hex(Path path) throws IOException {
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      byte[] bytes = Files.readAllBytes(path);
+      byte[] digest = md.digest(bytes);
+      StringBuilder sb = new StringBuilder(digest.length * 2);
+      for (byte b : digest) sb.append(String.format("%02x", b));
+      return sb.toString();
+    } catch (NoSuchAlgorithmException e) {
+      return "(unavailable)"; // SHA-256 is guaranteed by JDK spec
     }
   }
 
