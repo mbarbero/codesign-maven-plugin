@@ -21,6 +21,10 @@ jobs:
     name: All Tests
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      security-events: write # Required to upload Trivy SARIF results to GitHub code scanning.
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
@@ -49,3 +53,24 @@ jobs:
       - name: Show WireMock log on failure
         if: failure()
         run: cat maven-plugin/target/wiremock.log 2>/dev/null || echo "(WireMock log not found)"
+
+      # Trivy runs here rather than in ci-guardrails.yml because it scans the
+      # CycloneDX SBOM produced by the Maven build (target/bom_all.json), which
+      # contains the exact resolved dependency graph including transitives.
+      # Scanning the SBOM is strictly more accurate than Trivy's own filesystem
+      # heuristics, and the SBOM only exists after the build completes.
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.29.0
+        with:
+          scan-type: sbom
+          scan-ref: target/bom_all.json
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF file
+        if: always()
+        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+        with:
+          sarif_file: trivy-results.sarif
