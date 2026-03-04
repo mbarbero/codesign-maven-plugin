@@ -53,7 +53,8 @@ import picocli.CommandLine.Spec;
  *
  * <ol>
  *   <li>{@code CSI_CODESIGN_API_TOKEN} environment variable
- *   <li>{@code api.token} key in {@code ~/.config/codesign/config.properties}
+ *   <li>{@code api.token} key in the config file (default: {@code
+ *       ~/.config/eclipse-csi-codesign/config.properties}, override with {@code --config-file})
  * </ol>
  */
 @Command(
@@ -121,6 +122,16 @@ class SignCommand implements Callable<Integer> {
               + " Format: --param key=value --param key2=value2")
   Map<String, String> parameters;
 
+  // --- Authentication ---
+
+  @Option(
+      names = "--config-file",
+      paramLabel = "<file>",
+      description =
+          "Path to a properties file containing api.token"
+              + " (default: ~/.config/eclipse-csi-codesign/config.properties).")
+  Path configFile;
+
   // --- Output ---
 
   @Option(
@@ -183,11 +194,15 @@ class SignCommand implements Callable<Integer> {
 
     String resolvedToken = resolveToken();
     if (resolvedToken == null) {
+      Path effectiveConfigFile =
+          configFile != null ? configFile : TokenResolver.DEFAULT_CONFIG_FILE;
       throw new ParameterException(
           spec.commandLine(),
           "No API token found. Provide it via one of the following (in priority order):\n"
               + "  1. CSI_CODESIGN_API_TOKEN environment variable\n"
-              + "  2. api.token key in ~/.config/codesign/config.properties");
+              + "  2. api.token key in "
+              + effectiveConfigFile
+              + " (override with --config-file)");
     }
 
     int timeout = Math.max(1, waitForCompletionTimeout);
@@ -358,7 +373,11 @@ class SignCommand implements Callable<Integer> {
    * Resolves the API token. Visible for testing: subclasses may override to supply a fixed token.
    */
   String resolveToken() {
-    return TokenResolver.resolve();
+    Path effectiveConfigFile = configFile != null ? configFile : TokenResolver.DEFAULT_CONFIG_FILE;
+    return TokenResolver.resolve(
+        System.getenv(TokenResolver.ENV_VAR),
+        effectiveConfigFile,
+        msg -> spec.commandLine().getErr().println("[WARNING] " + msg));
   }
 
   /**

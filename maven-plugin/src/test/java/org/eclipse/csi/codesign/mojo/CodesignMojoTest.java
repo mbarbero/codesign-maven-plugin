@@ -596,6 +596,29 @@ class CodesignMojoTest {
     assertTrue(message.contains("csi.codesign.apiToken"), "Should mention system property");
     assertTrue(message.contains("settings.xml"), "Should mention settings.xml");
     assertTrue(message.contains("CSI_CODESIGN_API_TOKEN"), "Should mention env var");
+    assertTrue(message.contains("csi.codesign.configFile"), "Should mention configFile parameter");
+  }
+
+  @Test
+  void resolvesApiTokenFromConfigFile() throws Exception {
+    Path configFile = tempDir.resolve("config.properties");
+    Files.writeString(configFile, "api.token=file-token\n");
+
+    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, null);
+    setField(mojo, "configFile", configFile.toFile());
+
+    assertEquals("file-token", mojo.resolveApiToken());
+  }
+
+  @Test
+  void envVarTakesPriorityOverConfigFile() throws Exception {
+    Path configFile = tempDir.resolve("config.properties");
+    Files.writeString(configFile, "api.token=file-token\n");
+
+    CodesignMojo mojo = createMojoForTokenResolution(null, DEFAULT_SERVER_ID, null, "env-token");
+    setField(mojo, "configFile", configFile.toFile());
+
+    assertEquals("env-token", mojo.resolveApiToken());
   }
 
   @Test
@@ -702,6 +725,7 @@ class CodesignMojoTest {
         };
     setField(mojo, "apiToken", apiToken);
     setField(mojo, "serverId", serverId);
+    setField(mojo, "configFile", tempDir.resolve("nonexistent-config.properties").toFile());
 
     Settings settings = new Settings();
     if (serverPassword != null) {

@@ -12,11 +12,18 @@ package org.eclipse.csi.codesign.mojo;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.AclEntry;
+import java.nio.file.attribute.AclEntryPermission;
+import java.nio.file.attribute.AclEntryType;
+import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -24,7 +31,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.apache.maven.plugin.AbstractMojo;
@@ -93,6 +102,17 @@ public class CodesignMojo extends AbstractMojo {
    */
   @Parameter(property = "csi.codesign.serverId", defaultValue = "codesign")
   private String serverId;
+
+  /**
+   * Path to a properties file containing {@code api.token}.
+   *
+   * <p>Optional. Default is {@code ~/.config/eclipse-csi-codesign/config.properties}. Mapped to
+   * {@code -Dcsi.codesign.configFile}.
+   */
+  @Parameter(
+      property = "csi.codesign.configFile",
+      defaultValue = "${user.home}/.config/eclipse-csi-codesign/config.properties")
+  private File configFile;
 
   @Parameter(defaultValue = "${settings}", readonly = true)
   private Settings settings;
@@ -426,6 +446,7 @@ public class CodesignMojo extends AbstractMojo {
    *   <li>{@code csi.codesign.apiToken} parameter / system property
    *   <li>Maven {@code settings.xml} server password for {@code serverId}
    *   <li>{@value #CSI_CODESIGN_API_TOKEN} environment variable
+   *   <li>{@code api.token} key in the config file ({@code csi.codesign.configFile})
    * </ol>
    *
    * @return resolved API token
@@ -458,6 +479,22 @@ public class CodesignMojo extends AbstractMojo {
       return envToken;
     }
 
+    if (configFile != null && configFile.canRead()) {
+      Path configPath = configFile.toPath();
+      checkConfigFilePermissions(configPath, msg -> getLog().warn(msg));
+      Properties props = new Properties();
+      try (Reader reader = Files.newBufferedReader(configPath)) {
+        props.load(reader);
+        String fileToken = props.getProperty("api.token");
+        if (fileToken != null && !fileToken.isBlank()) {
+          getLog().debug("Using API token from config file " + configFile);
+          return fileToken;
+        }
+      } catch (IOException ignored) {
+        // Cannot read the file — fall through
+      }
+    }
+
     throw new MojoExecutionException(
         "No API token found. Provide it via one of the following (in priority order):\n"
             + "  1. <apiToken> parameter or -Dcsi.codesign.apiToken system property\n"
@@ -466,7 +503,61 @@ public class CodesignMojo extends AbstractMojo {
             + "'\n"
             + "  3. "
             + CSI_CODESIGN_API_TOKEN
-            + " environment variable");
+            + " environment variable\n"
+            + "  4. api.token key in "
+            + configFile
+            + " (override with -Dcsi.codesign.configFile)");
+  }
+
+  /**
+   * Checks config file permissions and warns if the file is readable by users other than the owner.
+   *
+   * <p>On POSIX filesystems (Linux, macOS), checks group/other read bits and suggests {@code chmod
+   * 600}. On Windows (NTFS/ReFS), checks the ACL for any non-owner {@code ALLOW} entry that grants
+   * {@code READ_DATA}.
+   */
+  private static void checkConfigFilePermissions(Path configFile, Consumer<String> warnLogger) {
+    try {
+      Set<PosixFilePermission> perms = Files.getPosixFilePermissions(configFile);
+      if (perms.contains(PosixFilePermission.GROUP_READ)
+          || perms.contains(PosixFilePermission.OTHERS_READ)) {
+        warnLogger.accept(
+            "Config file "
+                + configFile
+                + " is readable by group or others. "
+                + "Run: chmod 600 "
+                + configFile);
+      }
+      return;
+    } catch (UnsupportedOperationException ignored) {
+      // Not a POSIX filesystem — fall through to Windows ACL check
+    } catch (IOException ignored) {
+      return;
+    }
+
+    try {
+      AclFileAttributeView aclView =
+          Files.getFileAttributeView(configFile, AclFileAttributeView.class);
+      if (aclView == null) {
+        return;
+      }
+      UserPrincipal owner = Files.getOwner(configFile);
+      List<AclEntry> acl = aclView.getAcl();
+      boolean othersCanRead =
+          acl.stream()
+              .filter(e -> e.type() == AclEntryType.ALLOW)
+              .filter(e -> !e.principal().equals(owner))
+              .anyMatch(e -> e.permissions().contains(AclEntryPermission.READ_DATA));
+      if (othersCanRead) {
+        warnLogger.accept(
+            "Config file "
+                + configFile
+                + " may be readable by other users."
+                + " Restrict access to the owner only.");
+      }
+    } catch (IOException ignored) {
+      // Cannot read ACL — skip check
+    }
   }
 
   /**

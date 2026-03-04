@@ -30,7 +30,7 @@ import java.util.function.Consumer;
  *
  * <ol>
  *   <li>{@code CSI_CODESIGN_API_TOKEN} environment variable
- *   <li>{@code api.token} key in {@code ~/.config/codesign/config.properties}
+ *   <li>{@code api.token} key in {@code ~/.config/eclipse-csi-codesign/config.properties}
  * </ol>
  */
 class TokenResolver {
@@ -38,19 +38,10 @@ class TokenResolver {
   static final String ENV_VAR = "CSI_CODESIGN_API_TOKEN";
 
   static final Path DEFAULT_CONFIG_FILE =
-      Path.of(System.getProperty("user.home"), ".config", "codesign", "config.properties");
+      Path.of(
+          System.getProperty("user.home"), ".config", "eclipse-csi-codesign", "config.properties");
 
   private TokenResolver() {}
-
-  /**
-   * Resolves the API token using the default environment and config-file sources.
-   *
-   * @return the resolved token, or {@code null} when no source provides a non-blank value
-   */
-  public static String resolve() {
-    return resolve(
-        System.getenv(ENV_VAR), DEFAULT_CONFIG_FILE, msg -> System.err.println("[WARNING] " + msg));
-  }
 
   /**
    * Resolves the API token from the provided sources (visible for testing).
