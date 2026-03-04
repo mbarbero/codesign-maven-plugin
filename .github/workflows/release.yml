@@ -68,6 +68,16 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run' }}
         run: ./mvnw -B -ntp -P integration-tests,generate-sbom,release -Dsigstore.skip=false -Daether.checksums.omitChecksumsForExtensions=.asc,.sigstore.json clean verify
 
+      - name: Scan SBOM for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.29.0
+        with:
+          scan-type: sbom
+          scan-ref: target/bom_all.json
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
       - name: Deploy to Maven Central
         if: ${{ startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish')) }}
         env:
