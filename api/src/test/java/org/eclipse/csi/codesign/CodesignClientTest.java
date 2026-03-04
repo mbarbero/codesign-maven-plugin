@@ -211,6 +211,21 @@ class CodesignClientTest {
   }
 
   @Test
+  void httpBaseUrlIsRejected() {
+    CodesignClient.Config config =
+        new CodesignClient.Config(
+            "http://insecure.example.com/Api",
+            "test-org",
+            "token",
+            java.time.Duration.ofSeconds(5),
+            java.time.Duration.ofSeconds(10),
+            java.time.Duration.ofSeconds(60),
+            java.time.Duration.ofSeconds(5),
+            3);
+    assertThrows(IllegalArgumentException.class, () -> new CodesignClient(config));
+  }
+
+  @Test
   void downloadThrowsOnHttpError() throws Exception {
     server.enqueue(new MockResponse().setResponseCode(500).setBody("Internal Server Error"));
 

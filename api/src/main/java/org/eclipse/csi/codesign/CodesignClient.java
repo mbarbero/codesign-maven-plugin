@@ -69,6 +69,9 @@ public class CodesignClient implements AutoCloseable {
    * @param config the client configuration
    */
   public CodesignClient(Config config) {
+    if (!config.baseUrl().startsWith("https://")) {
+      throw new IllegalArgumentException("baseUrl must use HTTPS. Got: " + config.baseUrl());
+    }
     this.baseUrl = config.baseUrl();
     this.organizationId = config.organizationId();
     this.apiToken = config.apiToken();

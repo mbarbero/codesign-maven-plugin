@@ -12,11 +12,19 @@ package org.eclipse.csi.codesign.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 class TokenResolverTest {
@@ -75,6 +83,28 @@ class TokenResolverTest {
     Path config = tempDir.resolve("config.properties");
     Files.writeString(config, "# This is a comment\napi.token=my-secret-token\n");
     assertEquals("my-secret-token", TokenResolver.resolve(null, null, config));
+  }
+
+  @Test
+  @DisabledOnOs(OS.WINDOWS)
+  void configFileWithGroupReadPermissionEmitsWarning() throws IOException {
+    Path config = tempDir.resolve("config.properties");
+    Files.writeString(config, "api.token=secret\n");
+
+    Set<PosixFilePermission> perms =
+        EnumSet.of(
+            PosixFilePermission.OWNER_READ,
+            PosixFilePermission.OWNER_WRITE,
+            PosixFilePermission.GROUP_READ);
+    Files.setPosixFilePermissions(config, perms);
+
+    List<String> warnings = new ArrayList<>();
+    String token = TokenResolver.resolve(null, null, config, warnings::add);
+
+    assertEquals("secret", token);
+    assertTrue(
+        warnings.stream().anyMatch(w -> w.contains("chmod 600")),
+        "Expected warning mentioning chmod 600, got: " + warnings);
   }
 
   private static Path createConfig(Path dir, String token) {

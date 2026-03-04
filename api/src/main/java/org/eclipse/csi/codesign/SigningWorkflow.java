@@ -11,7 +11,10 @@
 package org.eclipse.csi.codesign;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -83,11 +86,25 @@ public class SigningWorkflow {
       Map<String, String> parameters,
       Path artifactPath)
       throws CodesignException, IOException {
+    logger.accept("Artifact SHA-256 (pre-upload): " + sha256Hex(artifactPath));
     SigningRequest request =
         client.submit(
             projectId, signingPolicy, artifactConfiguration, description, parameters, artifactPath);
     logger.accept("Signing request submitted: " + request.statusUrl());
     return pollUntilFinal(request);
+  }
+
+  private static String sha256Hex(Path path) throws IOException {
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      byte[] bytes = Files.readAllBytes(path);
+      byte[] digest = md.digest(bytes);
+      StringBuilder sb = new StringBuilder(digest.length * 2);
+      for (byte b : digest) sb.append(String.format("%02x", b));
+      return sb.toString();
+    } catch (NoSuchAlgorithmException e) {
+      return "(unavailable)"; // SHA-256 is guaranteed by JDK spec
+    }
   }
 
   private SigningRequestStatus pollUntilFinal(SigningRequest request)

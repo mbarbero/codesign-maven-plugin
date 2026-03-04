@@ -14,7 +14,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Resolves the SignPath API token from multiple sources in priority order:
@@ -41,7 +44,11 @@ class TokenResolver {
    * @return the resolved token, or {@code null} when no source provides a non-blank value
    */
   public static String resolve(String cliToken) {
-    return resolve(cliToken, System.getenv(ENV_VAR), DEFAULT_CONFIG_FILE);
+    return resolve(
+        cliToken,
+        System.getenv(ENV_VAR),
+        DEFAULT_CONFIG_FILE,
+        msg -> System.err.println("[WARNING] " + msg));
   }
 
   /**
@@ -53,6 +60,20 @@ class TokenResolver {
    * @return the resolved token, or {@code null} when no source provides a non-blank value
    */
   static String resolve(String cliToken, String envToken, Path configFile) {
+    return resolve(cliToken, envToken, configFile, ignored -> {});
+  }
+
+  /**
+   * Resolves the API token from the provided sources (visible for testing).
+   *
+   * @param cliToken value from {@code --api-token}; may be {@code null}
+   * @param envToken value from the environment variable; may be {@code null}
+   * @param configFile path to the properties config file; need not exist
+   * @param warnLogger consumer for warning messages; called when insecure file permissions detected
+   * @return the resolved token, or {@code null} when no source provides a non-blank value
+   */
+  static String resolve(
+      String cliToken, String envToken, Path configFile, Consumer<String> warnLogger) {
     if (cliToken != null && !cliToken.isBlank()) {
       return cliToken;
     }
@@ -62,6 +83,22 @@ class TokenResolver {
     }
 
     if (Files.isReadable(configFile)) {
+      try {
+        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(configFile);
+        boolean groupCanRead = perms.contains(PosixFilePermission.GROUP_READ);
+        boolean othersCanRead = perms.contains(PosixFilePermission.OTHERS_READ);
+        if (groupCanRead || othersCanRead) {
+          warnLogger.accept(
+              "Config file "
+                  + configFile
+                  + " is readable by group or others. "
+                  + "Run: chmod 600 "
+                  + configFile);
+        }
+      } catch (UnsupportedOperationException | IOException ignored) {
+        // Non-POSIX filesystem (Windows) or read error — skip permission check
+      }
+
       Properties props = new Properties();
       try (Reader reader = Files.newBufferedReader(configFile)) {
         props.load(reader);
