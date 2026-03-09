@@ -36,6 +36,7 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
         with:
+          disable-sudo-and-containers: true
           egress-policy: audit
 
       - name: Checkout repository
@@ -141,6 +142,7 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
         with:
+          disable-sudo-and-containers: true
           egress-policy: audit
 
       - name: Checkout repository

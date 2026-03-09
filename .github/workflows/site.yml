@@ -33,7 +33,16 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
         with:
-          egress-policy: audit
+          disable-sudo-and-containers: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+            release-assets.githubusercontent.com:443
+            repo.maven.apache.org:443
+            www.eclipse.org:443
 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
