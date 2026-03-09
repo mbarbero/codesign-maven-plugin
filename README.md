@@ -14,7 +14,7 @@ Download the native binary for your platform from the
 run:
 
 ```bash
-codesign sign app.exe \
+csi-codesign sign app.exe \
   --organization-id <ORG_ID> \
   --project-id <PROJECT_SLUG> \
   --signing-policy <POLICY_SLUG> \
