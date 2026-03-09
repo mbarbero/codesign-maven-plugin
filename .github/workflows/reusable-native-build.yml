@@ -8,6 +8,9 @@ on:
         required: false
         type: number
         default: 7
+
+permissions: {}
+
 jobs:
   native:
     name: Build native (${{ matrix.platform }})

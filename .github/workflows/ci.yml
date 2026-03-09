@@ -13,8 +13,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   build-and-test:
@@ -22,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
       security-events: write # Required to upload Trivy SARIF results to GitHub code scanning.
 
     steps:
