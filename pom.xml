@@ -531,6 +531,8 @@
                     <argument>${project.build.directory}/bom_all.json</argument>
                     <argument>--output-format</argument>
                     <argument>json</argument>
+                    <argument>--output-version</argument>
+                    <argument>v1_6</argument>
                   </arguments>
                 </configuration>
               </execution>
