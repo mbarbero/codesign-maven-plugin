@@ -7,7 +7,7 @@ default_install_hook_types = ["pre-commit", "pre-push"]
 
 [[repos]]
 repo = "https://github.com/zizmorcore/zizmor-pre-commit"
-rev = "b546b77c44c466a54a42af5499dcc0dcc1a3193f" # frozen: v1.22.0
+rev = "ea2eb407b4cbce87cf0d502f36578950494f5ac9" # frozen: v1.23.1
 hooks = [
   { id = "zizmor" },
 ]
@@ -34,7 +34,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "a27a2e47c7751b639d2b5badf0ef6ff11fee893f" # frozen: v0.15.4
+rev = "b969e2851312ca2b24bbec879ba4954341d1bd12" # frozen: v0.15.5
 hooks = [
   { id = "ruff", args = ["--fix"], files = '^\.github/scripts/.*\.py$' },
   { id = "ruff-format", files = '^\.github/scripts/.*\.py$' },
@@ -42,7 +42,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/igorshubovych/markdownlint-cli"
-rev = "76b3d32d3f4b965e1d6425253c59407420ae2c43" # frozen: v0.47.0
+rev = "e72a3ca1632f0b11a07d171449fe447a7ff6795e" # frozen: v0.48.0
 hooks = [
   { id = "markdownlint", args = ["--fix"] },
 ]
@@ -77,7 +77,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/trufflesecurity/trufflehog"
-rev = "041f07e9df901a1038a528e5525b0226d04dd5ea" # frozen: v3.93.6
+rev = "c3e599b7163e8198a55467f3133db0e7b2a492cb" # frozen: v3.93.7
 hooks = [
   { id = "trufflehog", stages = ["manual"] },
 ]
