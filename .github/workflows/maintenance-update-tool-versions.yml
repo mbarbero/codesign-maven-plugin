@@ -11,14 +11,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   update-versions:
     name: Update pinned tool versions
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Harden Runner
@@ -42,18 +43,36 @@ jobs:
 
       - name: Create or update pull request
         if: ${{ steps.update.outputs.changed == 'true' }}
-        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
-        with:
-          token: ${{ github.token }}
-          branch: ci/update-pinned-tool-versions
-          title: "ci: update pinned tool versions"
-          commit-message: "ci: update pinned tool versions"
-          body: |
-            Automated update of pinned tool versions in:
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="ci/update-pinned-tool-versions"
+          TITLE="ci: update pinned tool versions"
+          BODY=$(cat <<'BODY_EOF'
+          Automated update of pinned tool versions in:
 
-            - `.github/tools/versions.json`
-            - `prek.toml` (`minimum_prek_version` synced from `.github/tools/pyproject.toml`)
-            - `prek.toml` (`defusedxml` pin synced from `.github/tools/pyproject.toml`)
-            - `prek.toml` (via `prek auto-update --freeze`)
+          - `.github/tools/versions.json`
+          - `prek.toml` (`minimum_prek_version` synced from `.github/tools/pyproject.toml`)
+          - `prek.toml` (`defusedxml` pin synced from `.github/tools/pyproject.toml`)
+          - `prek.toml` (via `prek auto-update --freeze`)
 
-            This keeps workflow binaries and hook revisions current.
+          This keeps workflow binaries and hook revisions current.
+          BODY_EOF
+          )
+
+          # Configure git for commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+
+          git checkout -B "${BRANCH}"
+          git add -A
+          git commit -m "${TITLE}"
+          git push -u origin "${BRANCH}" --force-with-lease
+
+          # Update existing PR or create a new one
+          if gh pr view "${BRANCH}" --json state -q '.state' 2>/dev/null | grep -q "OPEN"; then
+            gh pr edit "${BRANCH}" --title "${TITLE}" --body "${BODY}"
+          else
+            gh pr create --base main --head "${BRANCH}" --title "${TITLE}" --body "${BODY}"
+          fi
