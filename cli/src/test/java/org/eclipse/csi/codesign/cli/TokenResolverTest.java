@@ -120,7 +120,6 @@ class TokenResolverTest {
       Files.writeString(config, "api.token=secret\n");
 
       AclFileAttributeView aclView = Files.getFileAttributeView(config, AclFileAttributeView.class);
-      UserPrincipal owner = aclView.getOwner();
       UserPrincipal otherUser =
           fs.getUserPrincipalLookupService().lookupPrincipalByName("other-user");
 
